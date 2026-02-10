@@ -1,0 +1,262 @@
+/* Products Page Styling */
+
+.products-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.products-main {
+  flex: 1;
+  padding-top: 92px; /* Account for fixed header */
+}
+
+/* Cover Section */
+.products-cover {
+  position: relative;
+  width: 100%;
+  height: 847px;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.products-cover .cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cover-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.cover-title {
+  font-family: "Roboto", sans-serif;
+  font-size: 56px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  margin: 0;
+  text-align: center;
+}
+
+/* Search Bar - Positioned Absolutely at Top Right */
+.search-bar-product {
+  position: absolute;
+  right: 20px;
+  top: 42px;
+  width: 334.67px;
+  height: 56px;
+  background: #ffffff;
+  border: 2px solid #4b4949;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  z-index: 10;
+}
+
+.search-input-product {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: "Roboto", sans-serif;
+  font-size: 14px;
+  color: #000000;
+}
+
+.search-input-product::placeholder {
+  color: #999999;
+}
+
+.search-btn-product {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.search-btn-product:hover {
+  transform: scale(1.1);
+}
+
+.search-btn-product svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Logo - Positioned Absolutely on Right Below Search */
+.cover-logo {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 260.32px;
+  height: 136.92px;
+  z-index: 8;
+}
+
+.cover-logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Products Container - Main Layout */
+.products-container {
+  display: grid;
+  grid-template-columns: 321px 1fr;
+  gap: 40px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  align-items: start;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .products-container {
+    grid-template-columns: 280px 1fr;
+    gap: 30px;
+    padding: 30px 20px;
+  }
+
+  .cover-title {
+    font-size: 48px;
+  }
+
+  .search-bar-product {
+    width: 300px;
+    height: 48px;
+    top: 38px;
+    right: 15px;
+  }
+
+  .search-input-product {
+    font-size: 13px;
+  }
+
+  .cover-logo {
+    width: 220px;
+    height: 116px;
+    right: 15px;
+    top: 155px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .products-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .products-cover {
+    height: 600px;
+  }
+
+  .cover-title {
+    font-size: 40px;
+  }
+
+  .search-bar-product {
+    width: 280px;
+    height: 44px;
+    top: 35px;
+    right: 15px;
+  }
+
+  .cover-logo {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .products-cover {
+    height: 400px;
+  }
+
+  .products-container {
+    padding: 20px 15px;
+  }
+
+  .cover-title {
+    font-size: 32px;
+  }
+
+  .search-bar-product {
+    width: 250px;
+    height: 40px;
+    top: 30px;
+    right: 10px;
+    padding: 0 12px;
+    gap: 8px;
+    border: 1px solid #4b4949;
+  }
+
+  .search-input-product {
+    font-size: 12px;
+  }
+
+  .search-btn-product svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cover-logo {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-cover {
+    height: 280px;
+  }
+
+  .products-container {
+    padding: 15px 10px;
+  }
+
+  .cover-title {
+    font-size: 24px;
+  }
+
+  .search-bar-product {
+    width: 200px;
+    height: 36px;
+    top: 25px;
+    right: 8px;
+    padding: 0 10px;
+    border-radius: 18px;
+  }
+
+  .search-input-product {
+    font-size: 11px;
+  }
+
+  .search-btn-product svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .cover-logo {
+    display: none;
+  }
+}

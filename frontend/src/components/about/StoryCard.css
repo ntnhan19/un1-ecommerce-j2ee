@@ -1,0 +1,38 @@
+.story-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.placeholder-box {
+  width: 100%;
+  height: 250px;
+  background-color: #d9d9d9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.card-desc {
+    text-align: center;
+}
+
+.card-link {
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  margin-top: 10px;
+  display: inline-block;
+}
+.card-link:hover {
+  text-decoration: underline;
+}
+.arrow { color: #ff9999; margin-left: 5px; }
