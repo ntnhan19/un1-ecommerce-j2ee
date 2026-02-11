@@ -1,0 +1,85 @@
+### User Specific ###
+.idea/
+.vscode/
+*.swp
+*.swo
+*.DS_Store
+Thumbs.db
+Desktop.ini
+
+### Backend (Java / Spring Boot / Maven) ###
+backend/target/
+backend/bin/
+backend/build/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/**/src/main/**/target/
+backend/**/src/test/**/target/
+backend/*.class
+backend/*.log
+backend/*.ctxt
+backend/.mtj.tmp/
+backend/*.jar
+backend/*.war
+backend/*.nar
+backend/*.ear
+backend/*.zip
+backend/*.tar.gz
+backend/*.rar
+backend/hs_err_pid*
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/.springBeans
+backend/.gradle/
+backend/*.iml
+backend/.apt_generated
+backend/.factorypath
+backend/nbproject/private/
+backend/nbbuild/
+backend/dist/
+backend/nbdist/
+backend/.nb-gradle/
+
+# Spring Boot specific
+backend/application-local.properties
+backend/application-dev.properties
+backend/application-prod.properties
+backend/application-local.yml
+backend/application-dev.yml
+backend/application-prod.yml
+
+### Frontend (Node.js / React / Vite / Tailwind) ###
+frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage/
+frontend/build/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+frontend/.eslintcache
+frontend/vite.config.js.timestamp-*
+
+# Environment files
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/.env*.local
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+frontend/lerna-debug.log*
+
+### Common ###
+*.log
+logs/
+*~
+*.bak
+*.tmp
