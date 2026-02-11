@@ -1,6 +1,18 @@
 # Hệ Thống E-commerce (Dự Án Nhóm)
 
-Chào mừng đến với dự án E-commerce của chúng tôi. Tài liệu này cung cấp tổng quan về hệ thống, cấu trúc dự án và phân công trách nhiệm của các thành viên.
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-green)
+![React](https://img.shields.io/badge/React-19.2-blue)
+![License](https://img.shields.io/badge/license-MIT-blue)
+
+> Hệ thống E-commerce được xây dựng với Spring Boot và React, hỗ trợ quản lý sản phẩm, đơn hàng và người dùng.
+
+## 📖 Tài Liệu
+
+- [Setup Guide](SETUP.md) - Hướng dẫn cài đặt chi tiết
+- [Contributing Guide](CONTRIBUTING.md) - Quy trình đóng góp code
+- [API Documentation](API.md) - Tài liệu API endpoints
+- [Architecture](docs/ARCHITECTURE.md) - Kiến trúc hệ thống
 
 ## 🛠 Công Nghệ Sử Dụng
 *   **Backend**: Spring Boot (Java)
