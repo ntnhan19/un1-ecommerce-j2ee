@@ -8,41 +8,96 @@ const OrderCard = ({ order }) => {
   const formatCurrency = (a) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(a);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-all">
-      <div className="px-6 py-4 bg-gray-50 flex items-center justify-between border-b border-gray-100">
-        <div className="flex items-center gap-4">
+    <div className="order-card">
+      <div className="order-card-header">
+        <div className="order-card-info">
           <Icons.Package />
           <div>
-            <h3 className="text-sm font-bold text-gray-900">{order.orderNumber}</h3>
-            <p className="text-xs text-gray-500">{formatDate(order.date)}</p>
+            <h3 className="order-number">{order.orderNumber}</h3>
+            <p className="order-date">{formatDate(order.date)}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="order-card-actions">
           <OrderStatusBadge status={order.status} />
-          <button onClick={() => setIsExpanded(!isExpanded)} className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`}>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`expand-btn ${isExpanded ? 'expanded' : ''}`}
+          >
             <Icons.ChevronRight />
           </button>
         </div>
       </div>
       {isExpanded && (
-        <div className="px-6 py-4 animate-in fade-in duration-300">
-          <div className="text-sm font-bold text-gray-900 mb-2">Chi tiết sản phẩm</div>
-          {order.items.map(item => (
-            <div key={item.id} className="flex gap-4 py-3 border-b border-gray-50 last:border-0">
-              <img src={item.image} alt={item.name} className="w-14 h-14 rounded-lg object-cover border border-gray-100" />
-              <div className="flex-1 text-sm">
-                <div className="font-semibold text-gray-800">{item.name}</div>
-                <div className="text-gray-500">{item.quantity} x {formatCurrency(item.price)}</div>
-              </div>
+        <div className="order-card-details">
+          {/* Order Info Grid */}
+          <div className="order-info-grid">
+            <div className="info-item">
+              <span className="info-label">Mã đơn hàng:</span>
+              <span className="info-value">{order.orderNumber}</span>
             </div>
-          ))}
-          <div className="mt-4 p-4 bg-gray-50 rounded-xl">
-            <div className="text-xs text-gray-400 font-bold uppercase mb-1">Địa chỉ giao hàng:</div>
-            <div className="text-xs text-gray-700">{order.shippingAddress}</div>
+            <div className="info-item">
+              <span className="info-label">Ngày đặt:</span>
+              <span className="info-value">{formatDate(order.date)}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Khách hàng:</span>
+              <span className="info-value">{order.customerName}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Email:</span>
+              <span className="info-value">{order.customerEmail}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Số điện thoại:</span>
+              <span className="info-value">{order.customerPhone}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Địa chỉ giao hàng:</span>
+              <span className="info-value">{order.shippingAddress}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Mã vận đơn:</span>
+              <span className="info-value tracking-number-value">{order.trackingNumber}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Tổng tiền:</span>
+              <span className="info-value total-amount-value">{formatCurrency(order.totalAmount)}</span>
+            </div>
           </div>
-          <div className="mt-4 text-right">
-            <span className="text-xs text-gray-400 uppercase tracking-wider font-medium">Tổng thanh toán: </span>
-            <span className="text-xl font-bold text-blue-600">{formatCurrency(order.totalAmount)}</span>
+
+          {/* Items Section */}
+          <div className="order-items-section">
+            <h3 className="order-items-title">Sản phẩm đã đặt</h3>
+            {order.items.map(item => (
+              <div key={item.id} className="order-item">
+                <img src={item.image} alt={item.name} className="order-item-image" />
+                <div className="order-item-info">
+                  <div className="order-item-name">{item.name}</div>
+                  <div className="order-item-attributes">
+                    {item.color && <span className="order-item-attr">Màu: <strong>{item.color}</strong></span>}
+                    {item.size && <span className="order-item-attr">Size: <strong>{item.size}</strong></span>}
+                  </div>
+                  <div className="order-item-quantity">{item.quantity}</div>
+                  <div className="order-item-price">{formatCurrency(item.price)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Tracking Button */}
+          <div className="tracking-actions">
+            <a
+              href={`https://spx.vn/tracking?id=${order.trackingNumber}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-track-shipping"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Tra cứu vận chuyển chi tiết
+            </a>
           </div>
         </div>
       )}

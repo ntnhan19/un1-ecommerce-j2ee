@@ -8,13 +8,13 @@ const ProductShowcase = () => {
       id: 1,
       title: "ABOUT US",
       //image: '/src/assets/images/showcase-1.jpg',
-      link: "/about",
+      link: "/about-us",
     },
     {
       id: 2,
       title: "CONTACT US",
       //image: '/src/assets/images/showcase-2.jpg',
-      link: "/contact",
+      link: "/contact-us",
     },
   ];
 

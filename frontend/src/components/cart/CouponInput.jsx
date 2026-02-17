@@ -6,27 +6,31 @@ const CouponInput = () => {
   const [input, setInput] = useState('');
 
   return (
-    <div className="coupon-input flex items-center gap-2 mt-4">
-      <input
-        value={input}
-        onChange={e => setInput(e.target.value)}
-        placeholder="Nhập mã giảm giá"
-        className="border rounded px-2 py-1"
-      />
-      <button
-        onClick={() => applyCoupon(input.trim())}
-        className="bg-black text-white px-3 py-1 rounded"
-      >
-        Áp dụng
-      </button>
+    <div className="coupon-section">
+      <h3>Mã giảm giá</h3>
+      <div className="coupon-input-group">
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="Nhập mã giảm giá"
+          className="coupon-input"
+        />
+        <button
+          onClick={() => applyCoupon(input.trim())}
+          className="coupon-btn"
+        >
+          Áp dụng
+        </button>
+      </div>
 
       {coupon && (
-        <span className="ml-2 text-green-600">
-          Đã áp dụng: {coupon}
-        </span>
+        <div className="coupon-success">
+          Đã áp dụng mã: {coupon}
+        </div>
       )}
     </div>
   );
 };
 
 export default CouponInput;
+

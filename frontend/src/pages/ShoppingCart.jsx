@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
-
+import Header from '../components/common/Header';
 import CartItem from '../components/cart/CartItem';
 import CartSummary from '../components/cart/CartSummary';
 import CouponInput from '../components/cart/CouponInput';
 import RecommendedProducts from '../components/cart/RecommendedProducts';
+import '../styles/components/ShoppingCart.css';
 
 const ShoppingCart = () => {
   const { cartItems } = useCart();
@@ -18,55 +19,66 @@ const ShoppingCart = () => {
   );
 
   return (
-    <div className="shopping-cart max-w-4xl mx-auto p-4">
-      {/* Title */}
-      <h2 className="text-2xl font-bold mb-2">Shopping Cart</h2>
+    <div className="cart-container">
+      <Header />
 
-      {/* Cart info */}
-      {!isEmpty && (
-        <p className="text-gray-500 mb-6">
-          You have {totalItems} item{totalItems > 1 ? 's' : ''} in your cart
-        </p>
-      )}
+      <div className="cart-title-bar">
+        <h1>GIỎ HÀNG CỦA BẠN</h1>
+        {!isEmpty && (
+          <p className="cart-subtitle">
+            Bạn có {totalItems} sản phẩm trong giỏ hàng
+          </p>
+        )}
+      </div>
 
       {/* Empty cart state */}
       {isEmpty && (
-        <div className="empty-cart flex flex-col items-center justify-center h-[40vh] mb-8 text-center">
-          <img
-            src="/assets/images/empty-cart.png"
-            alt="Empty cart"
-            className="w-32 mb-4"
-          />
-          <p className="text-lg font-semibold mb-2">
-            Your cart is currently empty
-          </p>
-          <Link
-            to="/"
-            className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
-          >
-            Continue shopping
-          </Link>
+        <div className="cart-content">
+          <div className="cart-main">
+            <div className="empty-cart">
+              <div className="empty-cart-icon">🛒</div>
+              <h2>Giỏ hàng trống</h2>
+              <p>Bạn chưa có sản phẩm nào trong giỏ hàng</p>
+              <Link to="/" className="btn-continue-shopping">
+                Tiếp tục mua sắm
+              </Link>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Cart items */}
+      {/* Cart with items */}
       {!isEmpty && (
-        <>
-          <div className="flex flex-col gap-4 mb-6">
-            {cartItems.map(item => (
-              <CartItem key={item.id} item={item} />
-            ))}
+        <div className="cart-content">
+          <div className="cart-main">
+            <div className="cart-items-list">
+              {cartItems.map(item => (
+                <CartItem key={item.id} item={item} />
+              ))}
+            </div>
+
+            <CouponInput />
+
+            <div className="cart-actions">
+              <Link to="/" className="btn-continue-shopping">
+                ← Tiếp tục mua sắm
+              </Link>
+            </div>
           </div>
 
-          <CouponInput />
-          <CartSummary />
-        </>
+          <div className="cart-sidebar">
+            <CartSummary />
+          </div>
+        </div>
       )}
 
-      {/* Recommended products - always visible */}
-      <RecommendedProducts />
+      {/* Recommended products */}
+      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem' }}>
+        <RecommendedProducts />
+      </div>
     </div>
   );
 };
 
 export default ShoppingCart;
+

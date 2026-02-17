@@ -1,0 +1,117 @@
+/* MySizeDrawer - CSS Only Version */
+
+.size-drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    z-index: 9998;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.size-drawer-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 28rem;
+    background: #ffffff;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+.size-drawer-header {
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.size-drawer-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #111827;
+    margin: 0;
+    line-height: 1;
+}
+
+.size-drawer-close {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    line-height: 1;
+    transition: color 0.3s ease;
+}
+
+.size-drawer-close:hover {
+    color: #000000;
+}
+
+.size-drawer-body {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.size-drawer-footer {
+    padding: 2rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.size-drawer-footer button {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 9999px;
+    border: 1px solid #111827;
+    font-size: 1.125rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #ffffff;
+    color: #111827;
+}
+
+.size-drawer-footer button:hover {
+    background: #f9fafb;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .size-drawer-panel {
+        max-width: 100%;
+    }
+}

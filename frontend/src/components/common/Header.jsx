@@ -1,8 +1,15 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useCart } from "../../hooks/useCart";
+import { useWishlist } from "../../hooks/useWishlist";
+import { useUser } from "../../hooks/useUser";
 import "../../styles/components/header.css";
 
 const Header = () => {
+  const { totalItems } = useCart();
+  const { totalWishlistItems } = useWishlist();
+  const { user } = useUser();
+
   return (
     <header className="header">
       {/* Left Section - Navigation Menu */}
@@ -20,12 +27,10 @@ const Header = () => {
           <Link to="/" className="nav-item">
             SALE
           </Link>
-          <Link to="/about-us" className="nav-item">
-            ABOUT
+          <Link to="/track-order" className="nav-item">
+            TRA CỨU
           </Link>
-          <Link to="/contact-us" className="nav-item">
-            CONTACT
-          </Link>
+
         </nav>
       </div>
 
@@ -49,21 +54,36 @@ const Header = () => {
               alt="Shopping"
               className="header-icon-image"
             />
+            {totalItems > 0 && (
+              <span className="header-badge">{totalItems}</span>
+            )}
           </Link>
         </div>
         <div className="icon-liked-product">
-          <img
-            src="/src/assets/images/icon-liked-product.svg"
-            alt="Like"
-            className="header-icon-image"
-          />
+          <Link to="/wishlist">
+            <img
+              src="/src/assets/images/icon-liked-product.svg"
+              alt="Like"
+              className="header-icon-image"
+            />
+            {totalWishlistItems > 0 && (
+              <span className="header-badge">{totalWishlistItems}</span>
+            )}
+          </Link>
         </div>
-        <Link to="/auth/login" className="login-link">
-          Đăng Nhập
-        </Link>
+        {user ? (
+          <Link to="/profile" className="login-link">
+            Tài khoản
+          </Link>
+        ) : (
+          <Link to="/auth-login" className="login-link">
+            Đăng Nhập
+          </Link>
+        )}
       </div>
     </header>
   );
 };
 
 export default Header;
+
