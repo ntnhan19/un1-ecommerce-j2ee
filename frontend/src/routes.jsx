@@ -12,6 +12,9 @@ import ShoppingCart from './pages/ShoppingCart';
 import Wishlist from './pages/Wishlist';
 import AboutUs from './pages/AboutUs';
 import ContactUs from './pages/ContactUs';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminProducts from './pages/admin/AdminProducts';
+import AdminOrders from './pages/admin/AdminOrders';
 import { SizeProvider } from './context/SizeContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
@@ -40,6 +43,10 @@ const AppRoutes = () => {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/about-us" element={<AboutUs />} />
                 <Route path="/contact-us" element={<ContactUs />} />
+                {/* Admin Routes */}
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/products" element={<AdminProducts />} />
+                <Route path="/admin/orders" element={<AdminOrders />} />
                 {/* Redirect unknown routes to / */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
