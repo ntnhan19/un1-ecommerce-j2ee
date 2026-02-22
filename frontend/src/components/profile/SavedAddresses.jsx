@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useUser } from '../../hooks/useUser';
+import { toast } from 'react-toastify';
 
 const SavedAddresses = () => {
     const { addresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } = useUser();
@@ -40,9 +41,11 @@ const SavedAddresses = () => {
         if (editingId) {
             updateAddress(editingId, formData);
             setEditingId(null);
+            toast.success('Đã cập nhật địa chỉ thành công!');
         } else {
             addAddress(formData);
             setIsAdding(false);
+            toast.success('Đã thêm địa chỉ mới thành công!');
         }
         resetForm();
     };
@@ -70,6 +73,7 @@ const SavedAddresses = () => {
     const handleDelete = (addressId) => {
         if (window.confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) {
             deleteAddress(addressId);
+            toast.success('Đã xóa địa chỉ!');
         }
     };
 
@@ -201,7 +205,10 @@ const SavedAddresses = () => {
                                     {!address.isDefault && (
                                         <button
                                             className="btn-set-default"
-                                            onClick={() => setDefaultAddress(address.id)}
+                                            onClick={() => {
+                                                setDefaultAddress(address.id);
+                                                toast.success('Đã đặt làm địa chỉ mặc định!');
+                                            }}
                                             title="Đặt làm mặc định"
                                         >
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

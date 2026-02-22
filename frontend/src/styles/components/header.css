@@ -88,6 +88,47 @@
   gap: 20px;
 }
 
+/* Header Search Form */
+.header-search-form {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 5px 15px;
+  background-color: #f9f9f9;
+  transition: all 0.3s ease;
+  width: 200px;
+}
+
+.header-search-form:focus-within {
+  border-color: #000;
+  background-color: #fff;
+  width: 250px;
+}
+
+.header-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  flex: 1;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.header-search-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  color: #666;
+}
+
+.header-search-btn:hover {
+  color: #000;
+}
+
 /* Icon Placeholders */
 .icon-shopping-card,
 .icon-liked-product {

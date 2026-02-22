@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 
 const MyVouchers = () => {
     // Mock vouchers data
@@ -37,7 +38,7 @@ const MyVouchers = () => {
 
     const copyToClipboard = (code) => {
         navigator.clipboard.writeText(code);
-        alert(`Đã copy mã: ${code}`);
+        toast.success(`Đã copy mã: ${code}`);
     };
 
     const activeVouchers = vouchers.filter(v => v.status === 'active');

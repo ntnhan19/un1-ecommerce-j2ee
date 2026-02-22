@@ -21,6 +21,12 @@ export const mockProductsNam = [
     description: "Áo nỉ dáng suông. Cổ cao cài khóa kéo phía trước. Dài tay. Bo viền bằng vải gân.",
     material: "+ LỚP NGOÀI: 80% vải cotton, 20% vải pôliexte\n+ CHI TIẾT: 97% vải cotton, 3% elastane",
     careInstructions: "Giặt máy ở nhiệt độ tối đa 30ºC, vắt ở tốc độ thấp\nKhông sử dụng nước tẩy / thuốc tẩy\nGiặt ở nhiệt độ tối đa 110ºC\nKhông giặt khô\nKhông sử dụng máy sấy",
+    sizeChart: {
+      S: { chest: '90-94', shoulder: '44', length: '68' },
+      M: { chest: '94-98', shoulder: '45', length: '69' },
+      L: { chest: '98-102', shoulder: '46', length: '70' },
+      XL: { chest: '102-106', shoulder: '47', length: '71' },
+    },
   },
   {
     id: 2,

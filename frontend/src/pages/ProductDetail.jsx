@@ -5,6 +5,9 @@ import Footer from "../components/common/Footer";
 import { getProductById } from "../utils/mockProducts";
 import MySizeDrawer from "../components/common/MySizeDrawer";
 import { useSize } from "../context/SizeContext";
+import { useCart } from "../hooks/useCart";
+import { toast } from "react-toastify";
+import ProductReviews from "../components/product/ProductReviews";
 import "../styles/pages/product-detail.css";
 
 const ProductDetail = () => {
@@ -12,6 +15,7 @@ const ProductDetail = () => {
     const navigate = useNavigate();
     const product = getProductById(category, id);
     const { toggleDrawer } = useSize();
+    const { addToCart } = useCart();
 
     const [selectedColor, setSelectedColor] = useState(0);
     const [selectedSize, setSelectedSize] = useState("");
@@ -33,7 +37,7 @@ const ProductDetail = () => {
         );
     }
 
-    const handleAddToCart = () => {
+    const validateSize = () => {
         if (!selectedSize) {
             // Scroll to size selection
             const sizeSection = document.querySelector('.size-selection');
@@ -45,16 +49,36 @@ const ProductDetail = () => {
                     sizeSection.classList.remove('highlight-required');
                 }, 2000);
             }
-            alert("Vui lòng chọn kích thước!");
-            return;
+            toast.error("Vui lòng chọn kích thước!");
+            return false;
         }
-        console.log("Add to cart:", {
-            product: product.name,
-            color: product.colors?.[selectedColor]?.name || "Default",
+        return true;
+    };
+
+    const createCartItem = () => {
+        return {
+            ...product,
+            id: `${product.id}-${selectedSize}-${selectedColor}`, // Unique ID for variation
+            baseId: product.id,
             size: selectedSize,
-            quantity,
-        });
-        alert("Đã thêm vào giỏ hàng!");
+            color: product.colors?.[selectedColor]?.name || "Default",
+            image: images[selectedImage],
+            // Note: addToCart in CartContext currently forces +1, but it will store the custom attributes
+        };
+    };
+
+    const handleAddToCart = () => {
+        if (!validateSize()) return;
+
+        addToCart(createCartItem());
+        toast.success("Đã thêm vào giỏ hàng!");
+    };
+
+    const handleBuyNow = () => {
+        if (!validateSize()) return;
+
+        addToCart(createCartItem());
+        navigate('/checkout');
     };
 
     const images = product.images || [product.image];
@@ -99,11 +123,15 @@ const ProductDetail = () => {
                             <h2 className="product-detail-name">{product.name}</h2>
                             <p className="product-detail-price">{product.price}</p>
 
-                            {/* Add to Cart Button */}
-                            <button className="add-to-cart-detail" onClick={handleAddToCart}>
-                                <span className="cart-icon"></span>
-                                Thêm vào giỏ hàng
-                            </button>
+                            <div className="product-actions">
+                                <button className="add-to-cart-detail" onClick={handleAddToCart}>
+                                    <span className="cart-icon"></span>
+                                    Thêm vào giỏ hàng
+                                </button>
+                                <button className="buy-now-detail" onClick={handleBuyNow}>
+                                    Mua ngay
+                                </button>
+                            </div>
                             {/* Color Selection */}
                             {product.colors && product.colors.length > 0 && (
                                 <div className="product-options">
@@ -151,19 +179,25 @@ const ProductDetail = () => {
                                         <div className="size-chart-row">
                                             <div className="size-cell header-cell">Ngực (cm)</div>
                                             {product.sizes.map((size) => (
-                                                <div key={size} className="size-cell">-</div>
+                                                <div key={size} className="size-cell">
+                                                    {product.sizeChart?.[size]?.chest || "-"}
+                                                </div>
                                             ))}
                                         </div>
                                         <div className="size-chart-row">
                                             <div className="size-cell header-cell">Vai (cm)</div>
                                             {product.sizes.map((size) => (
-                                                <div key={size} className="size-cell">-</div>
+                                                <div key={size} className="size-cell">
+                                                    {product.sizeChart?.[size]?.shoulder || "-"}
+                                                </div>
                                             ))}
                                         </div>
                                         <div className="size-chart-row">
                                             <div className="size-cell header-cell">Dài (cm)</div>
                                             {product.sizes.map((size) => (
-                                                <div key={size} className="size-cell">-</div>
+                                                <div key={size} className="size-cell">
+                                                    {product.sizeChart?.[size]?.length || "-"}
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
@@ -196,6 +230,10 @@ const ProductDetail = () => {
                         </div>
                     </div>
                 </main>
+
+                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
+                    <ProductReviews productId={product.id} />
+                </div>
 
                 <Footer />
             </div>

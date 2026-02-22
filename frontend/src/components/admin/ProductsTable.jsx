@@ -190,6 +190,76 @@ const ColorEditor = ({ colors, onChange }) => {
     );
 };
 
+// ---- Size Chart Editor ----
+const SizeChartEditor = ({ sizeChart, onChange }) => {
+    // Default structure if empty
+    const defaultChart = {
+        S: { chest: '', shoulder: '', length: '' },
+        M: { chest: '', shoulder: '', length: '' },
+        L: { chest: '', shoulder: '', length: '' },
+        XL: { chest: '', shoulder: '', length: '' },
+    };
+
+    const chart = sizeChart || defaultChart;
+    const sizes = ['S', 'M', 'L', 'XL'];
+    const metrics = [
+        { key: 'chest', label: 'Ngực (cm)' },
+        { key: 'shoulder', label: 'Vai (cm)' },
+        { key: 'length', label: 'Dài (cm)' },
+    ];
+
+    const handleChange = (size, metric, value) => {
+        onChange({
+            ...chart,
+            [size]: {
+                ...chart[size],
+                [metric]: value
+            }
+        });
+    };
+
+    return (
+        <div style={{ overflowX: 'auto' }}>
+            <table className="admin-table" style={{ fontSize: '0.85rem' }}>
+                <thead>
+                    <tr>
+                        <th style={{ padding: '8px', background: '#f9f9f9' }}>Size</th>
+                        {sizes.map(size => (
+                            <th key={size} style={{ padding: '8px', background: '#f9f9f9', textAlign: 'center' }}>
+                                {size}
+                            </th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {metrics.map(metric => (
+                        <tr key={metric.key}>
+                            <td style={{ fontWeight: 600, padding: '8px' }}>{metric.label}</td>
+                            {sizes.map(size => (
+                                <td key={`${size}-${metric.key}`} style={{ padding: '4px' }}>
+                                    <input
+                                        type="text"
+                                        value={chart[size]?.[metric.key] || ''}
+                                        onChange={(e) => handleChange(size, metric.key, e.target.value)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '4px',
+                                            border: '1px solid #ddd',
+                                            borderRadius: '4px',
+                                            textAlign: 'center'
+                                        }}
+                                        placeholder="-"
+                                    />
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
 // ---- Product Modal ----
 const EMPTY_PRODUCT = {
     name: '',
@@ -199,12 +269,26 @@ const EMPTY_PRODUCT = {
     status: 'active',
     colors: [],
     sizes: 'S, M, L, XL',
+    description: '',
+    material: '',
+    careInstructions: '',
+    sizeChart: {
+        S: { chest: '', shoulder: '', length: '' },
+        M: { chest: '', shoulder: '', length: '' },
+        L: { chest: '', shoulder: '', length: '' },
+        XL: { chest: '', shoulder: '', length: '' },
+    }
 };
 
 const ProductModal = ({ product, onClose, onSave }) => {
     const [form, setForm] = useState(
         product
-            ? { ...product, sizes: product.sizes.join(', ') }
+            ? {
+                ...EMPTY_PRODUCT,
+                ...product,
+                sizes: Array.isArray(product.sizes) ? product.sizes.join(', ') : product.sizes,
+                sizeChart: product.sizeChart || EMPTY_PRODUCT.sizeChart
+            }
             : EMPTY_PRODUCT
     );
 
@@ -217,6 +301,10 @@ const ProductModal = ({ product, onClose, onSave }) => {
         setForm((prev) => ({ ...prev, colors }));
     };
 
+    const handleSizeChartChange = (newChart) => {
+        setForm(prev => ({ ...prev, sizeChart: newChart }));
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         onSave({
@@ -225,12 +313,13 @@ const ProductModal = ({ product, onClose, onSave }) => {
             stock: Number(form.stock),
             sizes: form.sizes.split(',').map((s) => s.trim()).filter(Boolean),
             // colors already an array of {name, hex}
+            // description and sizeChart are already in form
         });
     };
 
     return (
         <div className="admin-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-            <div className="admin-modal" style={{ maxWidth: 600 }}>
+            <div className="admin-modal" style={{ maxWidth: 800 }}>
                 <div className="admin-modal-header">
                     <span className="admin-modal-title">
                         {product ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
@@ -287,7 +376,64 @@ const ProductModal = ({ product, onClose, onSave }) => {
                                     min="0"
                                 />
                             </div>
-                            <div className="admin-form-group">
+                            <div className="admin-form-group full-width">
+                                <label>Mô tả sản phẩm</label>
+                                <textarea
+                                    name="description"
+                                    value={form.description}
+                                    onChange={handleChange}
+                                    placeholder="Áo nỉ dáng suông..."
+                                    rows={3}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: '6px',
+                                        fontFamily: 'inherit',
+                                        resize: 'vertical'
+                                    }}
+                                />
+                            </div>
+
+                            <div className="admin-form-group full-width">
+                                <label>Chất liệu (xuống dòng để tạo gạch đầu dòng)</label>
+                                <textarea
+                                    name="material"
+                                    value={form.material}
+                                    onChange={handleChange}
+                                    placeholder={"+ LỚP NGOÀI: 80% cotton...\n+ CHI TIẾT: 20% polyester..."}
+                                    rows={3}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: '6px',
+                                        fontFamily: 'inherit',
+                                        resize: 'vertical'
+                                    }}
+                                />
+                            </div>
+
+                            <div className="admin-form-group full-width">
+                                <label>Hướng dẫn bảo quản</label>
+                                <textarea
+                                    name="careInstructions"
+                                    value={form.careInstructions}
+                                    onChange={handleChange}
+                                    placeholder={"Giặt máy ở nhiệt độ tối đa 30ºC...\nKhông sử dụng nước tẩy..."}
+                                    rows={3}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: '6px',
+                                        fontFamily: 'inherit',
+                                        resize: 'vertical'
+                                    }}
+                                />
+                            </div>
+
+                            <div className="admin-form-group full-width">
                                 <label>Kích thước (phân cách bằng dấu phẩy)</label>
                                 <input
                                     name="sizes"
@@ -296,6 +442,13 @@ const ProductModal = ({ product, onClose, onSave }) => {
                                     placeholder="S, M, L, XL"
                                 />
                             </div>
+
+                            {/* Size Chart Editor - full width */}
+                            <div className="admin-form-group full-width">
+                                <label>Bảng thông số kích thước</label>
+                                <SizeChartEditor sizeChart={form.sizeChart} onChange={handleSizeChartChange} />
+                            </div>
+
                             {/* Color Editor - full width */}
                             <div className="admin-form-group full-width">
                                 <label>Màu sắc ({form.colors.length} màu)</label>

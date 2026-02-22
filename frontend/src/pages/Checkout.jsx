@@ -131,8 +131,8 @@ const Checkout = () => {
       // Clear cart after successful order
       clearCart();
 
-      // Redirect to order management page
-      navigate('/orders');
+      // Redirect to order success page
+      navigate(`/order-success/${newOrder.id}`);
     }
   };
 

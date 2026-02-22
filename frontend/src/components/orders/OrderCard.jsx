@@ -1,9 +1,11 @@
 ﻿import React, { useState } from 'react';
 import OrderStatusBadge from './OrderStatusBadge';
 import { Icons } from '../../pages/orders/orderConstants';
+import ReturnModal from './ReturnModal';
 
 const OrderCard = ({ order }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showReturnModal, setShowReturnModal] = useState(false);
   const formatDate = (d) => new Date(d).toLocaleDateString('vi-VN');
   const formatCurrency = (a) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(a);
 
@@ -85,7 +87,7 @@ const OrderCard = ({ order }) => {
           </div>
 
           {/* Tracking Button */}
-          <div className="tracking-actions">
+          <div className="tracking-actions" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', justifyContent: 'center' }}>
             <a
               href={`https://spx.vn/tracking?id=${order.trackingNumber}`}
               target="_blank"
@@ -98,8 +100,34 @@ const OrderCard = ({ order }) => {
               </svg>
               Tra cứu vận chuyển chi tiết
             </a>
+
+            {['completed', 'completed', 'DELIVERED', 'COMPLETED'].includes(order.status) && (
+              <button
+                className="btn-return-order"
+                onClick={() => setShowReturnModal(true)}
+                style={{ padding: '0.75rem 1.5rem', background: '#fff', border: '1px solid #333', color: '#333', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Yêu cầu Đổi / Trả hàng
+              </button>
+            )}
           </div>
         </div>
+      )}
+
+      {showReturnModal && (
+        <ReturnModal
+          order={order}
+          onClose={() => setShowReturnModal(false)}
+          onSubmit={(data) => {
+            console.log("Return request:", data);
+            alert("Yêu cầu của bạn đã được gửi thành công!");
+            setShowReturnModal(false);
+          }}
+        />
       )}
     </div>
   );

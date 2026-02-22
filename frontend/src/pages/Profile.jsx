@@ -8,6 +8,8 @@ import SavedAddresses from '../components/profile/SavedAddresses';
 import OrderHistory from '../components/profile/OrderHistory';
 import MyVouchers from '../components/profile/MyVouchers';
 import ChangePassword from '../components/profile/ChangePassword';
+import MyReviews from '../components/profile/MyReviews';
+import LoyaltyRewards from '../components/profile/LoyaltyRewards';
 import '../styles/components/Profile.css';
 
 const Profile = () => {
@@ -31,6 +33,8 @@ const Profile = () => {
         { id: 'personal', label: 'Thông tin cá nhân', icon: '' },
         { id: 'addresses', label: 'Địa chỉ đã lưu', icon: '' },
         { id: 'orders', label: 'Lịch sử đơn hàng', icon: '' },
+        { id: 'reviews', label: 'Đánh giá SP', icon: '' },
+        { id: 'rewards', label: 'Thành viên', icon: '' },
         { id: 'vouchers', label: 'Voucher của tôi', icon: '' },
         { id: 'password', label: 'Đổi mật khẩu', icon: '' }
     ];
@@ -81,6 +85,8 @@ const Profile = () => {
                     {activeTab === 'personal' && <PersonalInfo user={user} />}
                     {activeTab === 'addresses' && <SavedAddresses />}
                     {activeTab === 'orders' && <OrderHistory />}
+                    {activeTab === 'reviews' && <MyReviews />}
+                    {activeTab === 'rewards' && <LoyaltyRewards />}
                     {activeTab === 'vouchers' && <MyVouchers />}
                     {activeTab === 'password' && <ChangePassword />}
                 </div>

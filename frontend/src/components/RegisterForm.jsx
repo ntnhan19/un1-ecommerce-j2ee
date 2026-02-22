@@ -122,7 +122,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
           <div className="radio-group">
             <label><input type="radio" value="Nam" {...register("gender")} /> Nam</label>
             <label><input type="radio" value="Nu" {...register("gender")} /> Nữ</label>
-            <label><input type="radio" value="Other" {...register("gender")} /> Bỏ Chọn</label>
+            <label><input type="radio" value="Other" {...register("gender")} /> Khác</label>
           </div>
         </div>
 

@@ -5,8 +5,10 @@ import ProductDetail from "./pages/ProductDetail";
 import AISizeAssistant from './pages/AISizeAssistant';
 import Auth from './pages/Auth';
 import Checkout from './pages/Checkout';
+import OrderSuccess from './pages/OrderSuccess';
 import OrderManagement from './pages/orders/OrderManagement';
 import TrackOrder from './pages/TrackOrder';
+import Search from './pages/Search';
 import Profile from './pages/Profile';
 import ShoppingCart from './pages/ShoppingCart';
 import Wishlist from './pages/Wishlist';
@@ -30,6 +32,7 @@ const AppRoutes = () => {
             <SizeProvider>
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/search" element={<Search />} />
                 <Route path="/products/:category" element={<Products />} />
                 <Route path="/product/:category/:id" element={<ProductDetail />} />
                 <Route path="/ai-size" element={<AISizeAssistant />} />
@@ -38,6 +41,7 @@ const AppRoutes = () => {
                 <Route path="/cart" element={<ShoppingCart />} />
                 <Route path="/wishlist" element={<Wishlist />} />
                 <Route path="/checkout" element={<Checkout />} />
+                <Route path="/order-success/:orderId" element={<OrderSuccess />} />
                 <Route path="/orders" element={<OrderManagement />} />
                 <Route path="/track-order" element={<TrackOrder />} />
                 <Route path="/profile" element={<Profile />} />
