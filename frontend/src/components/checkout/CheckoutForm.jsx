@@ -10,7 +10,8 @@ const CheckoutForm = ({ formData, setFormData, errors }) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
+      addressId: null // Clear address id if manually edited
     }));
   };
 
@@ -20,6 +21,17 @@ const CheckoutForm = ({ formData, setFormData, errors }) => {
 
   const handleNewAddressClick = () => {
     setActiveTab('new');
+    setFormData({
+      firstName: '',
+      lastName: '',
+      email: user?.email || '',
+      phone: '',
+      province: '',
+      district: '',
+      ward: '',
+      detailAddress: '',
+      addressId: null
+    });
   };
 
   const handleSelectAddress = (address) => {
@@ -37,7 +49,8 @@ const CheckoutForm = ({ formData, setFormData, errors }) => {
       province: address.province || '',
       district: address.district || '',
       ward: address.ward || '',
-      detailAddress: address.detailAddress || ''
+      detailAddress: address.detailAddress || '',
+      addressId: address.id
     }));
     setActiveTab('new');
   };
@@ -106,6 +119,14 @@ const CheckoutForm = ({ formData, setFormData, errors }) => {
         </div>
       ) : (
         <div className="form-grid">
+          {formData.addressId && (
+            <div className="selected-address-banner" style={{ gridColumn: '1 / -1', background: '#e0f7fa', padding: '12px 15px', borderRadius: '4px', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span role="img" aria-label="info" style={{ fontSize: '18px' }}>ℹ️</span>
+              <span style={{ color: '#006064', fontWeight: '500', fontSize: '14px' }}>
+                Đang sử dụng địa chỉ đã lưu. Thay đổi thông tin bên dưới sẽ tạo thành địa chỉ giao hàng mới.
+              </span>
+            </div>
+          )}
           <div className="form-group">
             <label htmlFor="firstName">Tên: <span className="required">*</span></label>
             <input

@@ -22,7 +22,8 @@ const Checkout = () => {
     province: '',
     district: '',
     ward: '',
-    detailAddress: ''
+    detailAddress: '',
+    addressId: null
   });
   const [shippingMethod, setShippingMethod] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
