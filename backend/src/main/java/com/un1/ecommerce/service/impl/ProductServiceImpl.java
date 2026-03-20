@@ -9,10 +9,15 @@ import com.un1.ecommerce.mapper.ProductMapper;
 import com.un1.ecommerce.repository.CategoryRepository;
 import com.un1.ecommerce.repository.ProductRepository;
 import com.un1.ecommerce.service.ProductService;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -71,7 +76,24 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<ProductResponse> getAllProducts(String keyword, Long categoryId, Pageable pageable) {
-        Page<Product> products = productRepository.searchProducts(keyword, categoryId, pageable);
+        Specification<Product> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                String searchKeyword = "%" + keyword.toLowerCase() + "%";
+                Predicate nameLike = cb.like(cb.lower(root.get("name")), searchKeyword);
+                Predicate descLike = cb.like(cb.lower(root.get("description")), searchKeyword);
+                predicates.add(cb.or(nameLike, descLike));
+            }
+            
+            if (categoryId != null) {
+                predicates.add(cb.equal(root.get("category").get("id"), categoryId));
+            }
+            
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<Product> products = productRepository.findAll(spec, pageable);
         return products.map(productMapper::toResponse);
     }
 }
