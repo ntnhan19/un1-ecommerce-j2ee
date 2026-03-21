@@ -37,11 +37,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String email = jwtUtil.extractEmail(jwt);
                 log.debug("Validating JWT token for email: {}", email);
 
-                // You can customize this based on your UserDetails implementation
-                // For now, we'll just set the principal in the security context
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    // Load full user details with authorities
+                    org.springframework.security.core.userdetails.UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                    
                     UsernamePasswordAuthenticationToken authentication = 
-                            new UsernamePasswordAuthenticationToken(email, null, null);
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails, 
+                                    null, 
+                                    userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                     log.debug("Successfully authenticated user: {}", email);
