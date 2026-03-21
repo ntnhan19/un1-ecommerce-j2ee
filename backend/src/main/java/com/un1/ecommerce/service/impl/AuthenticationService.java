@@ -14,6 +14,7 @@ import com.un1.ecommerce.repository.UserRepository;
 import com.un1.ecommerce.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,7 @@ public class AuthenticationService {
     private CartRepository cartRepository;
 
     @Autowired
+    @Lazy
     private PasswordEncoder passwordEncoder;
 
     @Autowired

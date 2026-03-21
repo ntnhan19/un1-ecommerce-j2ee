@@ -42,12 +42,17 @@ public class JwtUtil {
         Instant now = Instant.now();
         Instant expirationTime = now.plusSeconds(tokenExpiration);
 
-        return Jwts.builder()
-                .claims(claims)
+        var builder = Jwts.builder()
                 .subject(subject)
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(expirationTime))
-                .signWith(getSigningKey())
+                .expiration(Date.from(expirationTime));
+        
+        // Add custom claims if provided
+        if (claims != null && !claims.isEmpty()) {
+            claims.forEach(builder::claim);
+        }
+        
+        return builder.signWith(getSigningKey())
                 .compact();
     }
 
