@@ -1,4 +1,8 @@
-server:
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/un1_ecommerce_dev?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    username: root  # or 'ecommerce' if you created new user
+    password: Ngochan1801@  # your MySQL passwordserver:
   port: 8080
 
 spring:
