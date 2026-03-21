@@ -78,7 +78,7 @@ public class AuthenticationService {
         // Create cart for new user
         Cart cart = Cart.builder()
                 .user(savedUser)
-                .items(new ArrayList<>())
+                .cartItems(new ArrayList<>())
                 .build();
         cartRepository.save(cart);
         log.info("Cart created for user id: {}", savedUser.getId());
