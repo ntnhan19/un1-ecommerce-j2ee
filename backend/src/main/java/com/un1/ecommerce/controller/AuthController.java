@@ -1,5 +1,6 @@
 package com.un1.ecommerce.controller;
 
+import com.un1.ecommerce.config.RequireAdmin;
 import com.un1.ecommerce.dto.request.LoginRequest;
 import com.un1.ecommerce.dto.request.RegisterRequest;
 import com.un1.ecommerce.dto.response.ApiResponse;
@@ -71,6 +72,25 @@ public class AuthController {
         log.info("Fetching current user info for: {}", email);
         
         UserResponse response = authenticationService.getCurrentUser(email);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/auth/admin/test
+     * Protected route - Admin only endpoint (demo requireAdmin)
+     */
+    @GetMapping("/admin/test")
+    @RequireAdmin("Only admins can access this endpoint")
+    public ResponseEntity<ApiResponse> adminTestEndpoint() {
+        String email = getCurrentUserEmail();
+        log.info("Admin endpoint accessed by: {}", email);
+        
+        ApiResponse response = ApiResponse.builder()
+                .success(true)
+                .message("Welcome Admin! This is a protected admin-only endpoint.")
+                .data("User: " + email)
+                .build();
+        
         return ResponseEntity.ok(response);
     }
 
