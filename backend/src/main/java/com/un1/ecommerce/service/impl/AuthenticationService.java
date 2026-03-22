@@ -42,108 +42,71 @@ public class AuthenticationService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    /**
-     * Register a new user
-     */
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         log.info("Registering new user with email: {}", request.getEmail());
 
-        // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
-            log.warn("Email already exists: {}", request.getEmail());
             throw new IllegalArgumentException("Email already exists");
         }
 
-        // Create new user
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName())
+                .roles(new HashSet<>()) // Khởi tạo set roles trống
                 .build();
 
-        // Assign default USER role
-        Role userRole = roleRepository.findByName("USER")
-                .orElseGet(() -> {
-                    Role newRole = Role.builder().name("USER").build();
-                    return roleRepository.save(newRole);
-                });
+        // --- PHẦN SỬA ĐỔI ĐỂ TEST ---
+        // Mặc định mọi người đều có quyền USER
+        user.getRoles().add(getOrCreateRole("USER"));
 
-        user.getRoles().add(userRole);
+        // HACK ĐỂ TEST: Nếu email có chữ "admin", tự động gán thêm quyền ADMIN
+        if (request.getEmail().toLowerCase().contains("admin")) {
+            user.getRoles().add(getOrCreateRole("ADMIN"));
+            log.info("Auto-assigned ADMIN role to: {}", request.getEmail());
+        }
+        // ----------------------------
 
-        // Save user
         User savedUser = userRepository.save(user);
-        log.info("User registered successfully with id: {}", savedUser.getId());
 
-        // Create cart for new user
         Cart cart = Cart.builder()
                 .user(savedUser)
                 .cartItems(new ArrayList<>())
                 .build();
         cartRepository.save(cart);
-        log.info("Cart created for user id: {}", savedUser.getId());
 
-        // Generate token
-        String token = jwtUtil.generateToken(savedUser.getEmail());
-
-        // Return auth response
-        UserResponse userResponse = mapToUserResponse(savedUser);
-        return AuthResponse.builder()
-                .token(token)
-                .user(userResponse)
-                .build();
+        // Dùng hàm helper để tạo Response (tránh lặp code)
+        return createAuthResponse(savedUser);
     }
 
-    /**
-     * Login user
-     */
     public AuthResponse login(LoginRequest request) {
-        log.info("Authenticating user with email: {}", request.getEmail());
-
-        // Find user by email
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> {
-                    log.warn("User not found with email: {}", request.getEmail());
-                    return new ResourceNotFoundException("Invalid email or password");
-                });
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid email or password"));
 
-        // Validate password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            log.warn("Invalid password for user: {}", request.getEmail());
             throw new ResourceNotFoundException("Invalid email or password");
         }
 
-        log.info("User authenticated successfully: {}", request.getEmail());
+        return createAuthResponse(user);
+    }
 
-        // Generate token
+    // --- HÀM HELPER ĐỂ TỐI ƯU CODE ---
+
+    private Role getOrCreateRole(String roleName) {
+        return roleRepository.findByName(roleName)
+                .orElseGet(() -> roleRepository.save(Role.builder().name(roleName).build()));
+    }
+
+    private AuthResponse createAuthResponse(User user) {
         String token = jwtUtil.generateToken(user.getEmail());
-
-        // Return auth response
-        UserResponse userResponse = mapToUserResponse(user);
         return AuthResponse.builder()
                 .token(token)
-                .user(userResponse)
+                .type("Bearer") // Sửa lỗi "type: null" trên Postman lúc nãy ở đây!
+                .user(mapToUserResponse(user))
                 .build();
     }
 
-    /**
-     * Get current user by email
-     */
-    public UserResponse getCurrentUser(String email) {
-        log.info("Fetching current user: {}", email);
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> {
-                    log.warn("User not found with email: {}", email);
-                    return new ResourceNotFoundException("User not found");
-                });
-
-        return mapToUserResponse(user);
-    }
-
-    /**
-     * Map User entity to UserResponse DTO
-     */
     private UserResponse mapToUserResponse(User user) {
         Set<String> roleNames = user.getRoles().stream()
                 .map(Role::getName)
@@ -157,7 +120,6 @@ public class AuthenticationService {
                 .createdAt(user.getCreatedAt())
                 .build();
     }
-
     /**
      * Check if user is admin
      */
@@ -168,4 +130,17 @@ public class AuthenticationService {
         return user.getRoles().stream()
                 .anyMatch(role -> "ADMIN".equals(role.getName()));
     }
+
+    public UserResponse getCurrentUser(String email) {
+        log.info("Fetching current user info for: {}", email);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> {
+                    log.warn("User not found with email: {}", email);
+                    return new ResourceNotFoundException("User not found");
+                });
+
+        return mapToUserResponse(user);
+    }
+    
 }
