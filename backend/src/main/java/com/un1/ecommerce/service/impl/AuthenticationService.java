@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 @Service
 @Slf4j
 public class AuthenticationService {
@@ -142,5 +143,5 @@ public class AuthenticationService {
 
         return mapToUserResponse(user);
     }
-    
+
 }

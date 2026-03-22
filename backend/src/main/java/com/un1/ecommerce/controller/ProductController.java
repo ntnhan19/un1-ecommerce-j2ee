@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
+@SuppressWarnings("null")
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
