@@ -415,7 +415,9 @@
         }
       },
       "response": []
-    }
+    },
+    {
+      "name": "AUTH - Test Invalid Input (400)",
       "event": [
         {
           "listen": "test",
