@@ -3,3 +3,9 @@ spring:
     active: dev
   application:
     name: un1-ecommerce
+
+# JWT Configuration
+app:
+  jwt:
+    secret: "UjJFdDAyazcxQThJUXxHRVdKRUdOUXgzNWRGRXxBWUZJRkpJUFFFMEwyMEhWRERZMUhGMFRFRjA="
+    expiration: 604800  # 7 days in seconds
