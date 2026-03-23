@@ -1,14 +1,12 @@
 package com.un1.ecommerce.repository;
 
-import com.un1.ecommerce.entity.User;
+import com.un1.ecommerce.entity.Cart;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByEmail(String email);
-
-    boolean existsByEmail(String email);
+public interface CartRepository extends JpaRepository<Cart, Long> {
+    Optional<Cart> findByUserId(Long userId);
 }

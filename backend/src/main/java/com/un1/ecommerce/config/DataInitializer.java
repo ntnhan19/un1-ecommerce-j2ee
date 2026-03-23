@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@SuppressWarnings("null")
 public class DataInitializer implements CommandLineRunner {
 
     private final RoleRepository roleRepository;
