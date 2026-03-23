@@ -2,26 +2,29 @@ package com.un1.ecommerce.config;
 
 import com.un1.ecommerce.entity.Role;
 import com.un1.ecommerce.repository.RoleRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
+@Component
+@RequiredArgsConstructor
+@Slf4j
 @SuppressWarnings("null")
-@Configuration
-public class DataInitializer {
+public class DataInitializer implements CommandLineRunner {
 
-    @Bean
-    CommandLineRunner initRoles(RoleRepository roleRepository) {
-        return args -> {
-            // Kiểm tra nếu chưa có role USER thì tạo mới
-            if (roleRepository.findByName("USER").isEmpty()) {
-                roleRepository.save(Role.builder().name("USER").build());
-            }
-            
-            // Kiểm tra nếu chưa có role ADMIN thì tạo mới
-            if (roleRepository.findByName("ADMIN").isEmpty()) {
-                roleRepository.save(Role.builder().name("ADMIN").build());
-            }
-        };
+    private final RoleRepository roleRepository;
+
+    @Override
+    public void run(String... args) {
+        initRole("ROLE_USER");
+        initRole("ROLE_ADMIN");
+    }
+
+    private void initRole(String roleName) {
+        if (roleRepository.findByName(roleName).isEmpty()) {
+            roleRepository.save(Role.builder().name(roleName).build());
+            log.info("Initialized role: {}", roleName);
+        }
     }
 }

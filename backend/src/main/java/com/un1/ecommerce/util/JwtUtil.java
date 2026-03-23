@@ -46,12 +46,12 @@ public class JwtUtil {
                 .subject(subject)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expirationTime));
-        
+
         // Add custom claims if provided
         if (claims != null && !claims.isEmpty()) {
             claims.forEach(builder::claim);
         }
-        
+
         return builder.signWith(getSigningKey())
                 .compact();
     }
@@ -90,7 +90,7 @@ public class JwtUtil {
         } catch (MalformedJwtException e) {
             log.warn("Invalid JWT token: {}", e.getMessage());
             throw new RuntimeException("Invalid JWT token");
-        } catch (SignatureException e) {
+        } catch (io.jsonwebtoken.security.SignatureException e) {
             log.warn("JWT signature validation failed: {}", e.getMessage());
             throw new RuntimeException("JWT signature validation failed");
         } catch (IllegalArgumentException e) {

@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class LoginRequest {
 
-    @NotBlank(message = "Email cannot be blank")
-    @Email(message = "Email should be valid")
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Email không đúng định dạng")
     private String email;
 
-    @NotBlank(message = "Password cannot be blank")
+    @NotBlank(message = "Password không được để trống")
     private String password;
 }

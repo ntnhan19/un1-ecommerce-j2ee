@@ -53,12 +53,12 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse> logout() {
         log.info("Logout request from user: {}", getCurrentUserEmail());
-        
+
         ApiResponse response = ApiResponse.builder()
                 .success(true)
                 .message("Logged out successfully. Please clear the token from client-side.")
                 .build();
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -70,7 +70,7 @@ public class AuthController {
     public ResponseEntity<UserResponse> getCurrentUser() {
         String email = getCurrentUserEmail();
         log.info("Fetching current user info for: {}", email);
-        
+
         UserResponse response = authenticationService.getCurrentUser(email);
         return ResponseEntity.ok(response);
     }
@@ -84,13 +84,13 @@ public class AuthController {
     public ResponseEntity<ApiResponse> adminTestEndpoint() {
         String email = getCurrentUserEmail();
         log.info("Admin endpoint accessed by: {}", email);
-        
+
         ApiResponse response = ApiResponse.builder()
                 .success(true)
                 .message("Welcome Admin! This is a protected admin-only endpoint.")
                 .data("User: " + email)
                 .build();
-        
+
         return ResponseEntity.ok(response);
     }
 

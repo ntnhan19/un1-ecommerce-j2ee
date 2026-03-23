@@ -8,20 +8,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Data
 public class RegisterRequest {
 
-    @NotBlank(message = "Email cannot be blank")
-    @Email(message = "Email should be valid")
+    @NotBlank(message = "Email không được để trống")
+    @Email(message = "Email không đúng định dạng")
     private String email;
 
-    @NotBlank(message = "Password cannot be blank")
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @NotBlank(message = "Password không được để trống")
+    @Size(min = 6, message = "Password phải có ít nhất 6 ký tự")
     private String password;
 
-    @NotBlank(message = "Full name cannot be blank")
+    @NotBlank(message = "Họ tên không được để trống")
     private String fullName;
 }
