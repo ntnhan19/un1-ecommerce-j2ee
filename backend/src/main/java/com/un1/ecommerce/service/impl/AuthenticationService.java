@@ -8,6 +8,7 @@ import com.un1.ecommerce.entity.Cart;
 import com.un1.ecommerce.entity.Role;
 import com.un1.ecommerce.entity.User;
 import com.un1.ecommerce.exception.ResourceNotFoundException;
+import com.un1.ecommerce.exception.UnauthorizedException;
 import com.un1.ecommerce.repository.CartRepository;
 import com.un1.ecommerce.repository.RoleRepository;
 import com.un1.ecommerce.repository.UserRepository;
@@ -21,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 @Service
 @Slf4j
@@ -49,26 +49,18 @@ public class AuthenticationService {
         log.info("Registering new user with email: {}", request.getEmail());
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new IllegalArgumentException("Email đã tồn tại");
         }
 
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName())
-                .roles(new HashSet<>()) // Khởi tạo set roles trống
+                .roles(new HashSet<>())
                 .build();
 
-        // --- PHẦN SỬA ĐỔI ĐỂ TEST ---
-        // Mặc định mọi người đều có quyền USER
-        user.getRoles().add(getOrCreateRole("USER"));
-
-        // HACK ĐỂ TEST: Nếu email có chữ "admin", tự động gán thêm quyền ADMIN
-        if (request.getEmail().toLowerCase().contains("admin")) {
-            user.getRoles().add(getOrCreateRole("ADMIN"));
-            log.info("Auto-assigned ADMIN role to: {}", request.getEmail());
-        }
-        // ----------------------------
+        // Gán ROLE_USER mặc định
+        user.getRoles().add(getOrCreateRole("ROLE_USER"));
 
         User savedUser = userRepository.save(user);
 
@@ -78,16 +70,15 @@ public class AuthenticationService {
                 .build();
         cartRepository.save(cart);
 
-        // Dùng hàm helper để tạo Response (tránh lặp code)
         return createAuthResponse(savedUser);
     }
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid email or password"));
+                .orElseThrow(() -> new UnauthorizedException("Email hoặc mật khẩu không đúng"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new ResourceNotFoundException("Invalid email or password");
+            throw new UnauthorizedException("Email hoặc mật khẩu không đúng");
         }
 
         return createAuthResponse(user);
@@ -122,12 +113,13 @@ public class AuthenticationService {
                 .createdAt(user.getCreatedAt())
                 .build();
     }
+
     /**
      * Check if user is admin
      */
     public boolean isAdmin(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
 
         return user.getRoles().stream()
                 .anyMatch(role -> "ADMIN".equals(role.getName()));
@@ -139,7 +131,7 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     log.warn("User not found with email: {}", email);
-                    return new ResourceNotFoundException("User not found");
+                    return new ResourceNotFoundException("Không tìm thấy người dùng");
                 });
 
         return mapToUserResponse(user);

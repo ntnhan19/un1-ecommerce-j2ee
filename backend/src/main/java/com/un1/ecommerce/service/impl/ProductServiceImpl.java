@@ -34,7 +34,7 @@ public class ProductServiceImpl implements ProductService {
         
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + request.getCategoryId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục với id " + request.getCategoryId()));
             product.setCategory(category);
         }
 
@@ -45,20 +45,20 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với id " + id));
         return productMapper.toResponse(product);
     }
 
     @Override
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với id " + id));
 
         productMapper.updateEntityFromRequest(request, product);
 
         if (request.getCategoryId() != null) {
             Category category = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + request.getCategoryId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy danh mục với id " + request.getCategoryId()));
             product.setCategory(category);
         } else {
             product.setCategory(null);
@@ -71,7 +71,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm với id " + id));
         productRepository.delete(product);
     }
 
