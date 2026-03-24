@@ -6,6 +6,7 @@ import com.un1.ecommerce.dto.request.RegisterRequest;
 import com.un1.ecommerce.dto.response.ApiResponse;
 import com.un1.ecommerce.dto.response.AuthResponse;
 import com.un1.ecommerce.dto.response.UserResponse;
+import com.un1.ecommerce.service.UserService;
 import com.un1.ecommerce.service.impl.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -24,14 +25,18 @@ public class AuthController {
     @Autowired
     private AuthenticationService authenticationService;
 
+    @Autowired
+    private UserService userService;
+
     /**
      * POST /api/auth/register
      * Validate email/password, hash with bcrypt, create cart, return JWT
      */
     @PostMapping("/register")
+    @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         log.info("Register request for email: {}", request.getEmail());
-        AuthResponse response = authenticationService.register(request);
+        AuthResponse response = userService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

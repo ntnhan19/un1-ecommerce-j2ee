@@ -3,6 +3,8 @@ package com.un1.ecommerce.exception;
 import com.un1.ecommerce.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.un1.ecommerce.dto.response.ValidationErrorResponse;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -44,16 +46,27 @@ public class GlobalExceptionHandler {
         }
 
         @ExceptionHandler(MethodArgumentNotValidException.class)
-        public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
-                String message = ex.getBindingResult().getFieldErrors().stream()
-                                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                                .collect(Collectors.joining(", "));
+        public ResponseEntity<ValidationErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+                FieldError fieldError = ex.getBindingResult().getFieldError();
+                
+                String field = fieldError != null ? fieldError.getField() : "unknown";
+                String message = fieldError != null ? fieldError.getDefaultMessage() : "Validation error";
+                String rawCode = fieldError != null ? fieldError.getCode() : "INVALID";
+                
+                // Convert camelCase/PascalCase to UPPER_SNAKE_CASE
+                String code = rawCode.replaceAll("([a-z])([A-Z]+)", "$1_$2").toUpperCase();
+                
+                // Map specific codes
+                if ("SIZE".equals(code)) {
+                    code = "SIZE_MIN";
+                }
 
-                ErrorResponse errorResponse = ErrorResponse.builder()
-                                .status(HttpStatus.BAD_REQUEST.value())
+                ValidationErrorResponse errorResponse = ValidationErrorResponse.builder()
+                                .field(field)
                                 .message(message)
-                                .timestamp(LocalDateTime.now())
+                                .code(code)
                                 .build();
+                                
                 return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
 
