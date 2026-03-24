@@ -44,34 +44,7 @@ public class AuthenticationService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Transactional
-    public AuthResponse register(RegisterRequest request) {
-        log.info("Registering new user with email: {}", request.getEmail());
-
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email đã tồn tại");
-        }
-
-        User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .fullName(request.getFullName())
-                .roles(new HashSet<>())
-                .build();
-
-        // Gán ROLE_USER mặc định
-        user.getRoles().add(getOrCreateRole("ROLE_USER"));
-
-        User savedUser = userRepository.save(user);
-
-        Cart cart = Cart.builder()
-                .user(savedUser)
-                .cartItems(new ArrayList<>())
-                .build();
-        cartRepository.save(cart);
-
-        return createAuthResponse(savedUser);
-    }
+    // Registration logic moved to UserServiceImpl using UserService interface
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
