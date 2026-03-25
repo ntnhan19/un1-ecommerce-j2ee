@@ -1,8 +1,8 @@
 package com.un1.ecommerce.service.impl;
 
 import com.un1.ecommerce.dto.OrderItemDTO;
-import com.un1.ecommerce.dto.OrderRequest;
-import com.un1.ecommerce.dto.OrderResponse;
+import com.un1.ecommerce.dto.request.OrderRequest;
+import com.un1.ecommerce.dto.response.OrderResponse;
 import com.un1.ecommerce.entity.*;
 import com.un1.ecommerce.exception.BadRequestException;
 import com.un1.ecommerce.exception.ResourceNotFoundException;

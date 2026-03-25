@@ -21,7 +21,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"testuser@example.com\",\n    \"password\": \"123456\"\n}"
+              "raw": "{\n    \"email\": \"testuser@example.com\",\n    \"fullName\": \"Test User\",\n    \"password\": \"123456\",\n    \"confirmPassword\": \"123456\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",

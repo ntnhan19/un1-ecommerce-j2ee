@@ -1,6 +1,5 @@
 package com.un1.ecommerce.exception;
 
-import com.un1.ecommerce.dto.ErrorResponse;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.web.servlet.error.ErrorController;
@@ -8,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.un1.ecommerce.dto.response.ErrorResponse;
 
 import java.time.LocalDateTime;
 
@@ -22,13 +23,13 @@ public class CustomErrorController implements ErrorController {
 
         if (status != null) {
             statusCode = Integer.parseInt(status.toString());
-            if(statusCode == HttpStatus.NOT_FOUND.value()) {
+            if (statusCode == HttpStatus.NOT_FOUND.value()) {
                 message = "Endpoint not found";
-            } else if(statusCode == HttpStatus.UNAUTHORIZED.value()) {
+            } else if (statusCode == HttpStatus.UNAUTHORIZED.value()) {
                 message = "Unauthorized access";
-            } else if(statusCode == HttpStatus.FORBIDDEN.value()) {
+            } else if (statusCode == HttpStatus.FORBIDDEN.value()) {
                 message = "Access forbidden";
-            } else if(statusCode == HttpStatus.BAD_REQUEST.value()) {
+            } else if (statusCode == HttpStatus.BAD_REQUEST.value()) {
                 message = "Bad Request";
             }
         }
@@ -38,7 +39,7 @@ public class CustomErrorController implements ErrorController {
                 .message(message)
                 .timestamp(LocalDateTime.now())
                 .build();
-                
+
         return ResponseEntity.status(statusCode).body(errorResponse);
     }
 }

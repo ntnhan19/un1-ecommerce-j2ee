@@ -1,4 +1,4 @@
-package com.un1.ecommerce.dto;
+package com.un1.ecommerce.dto.response;
 
 import com.un1.ecommerce.entity.Order;
 import com.un1.ecommerce.entity.OrderItem;

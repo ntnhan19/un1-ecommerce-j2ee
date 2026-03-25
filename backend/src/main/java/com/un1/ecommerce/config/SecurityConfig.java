@@ -2,7 +2,8 @@ package com.un1.ecommerce.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.un1.ecommerce.dto.ErrorResponse;
+import com.un1.ecommerce.dto.response.ErrorResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
