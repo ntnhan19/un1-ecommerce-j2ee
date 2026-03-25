@@ -2,14 +2,14 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../hooks/useCart";
 import { useWishlist } from "../../hooks/useWishlist";
-import { useUser } from "../../hooks/useUser";
+import { useAuth } from "../../context/AuthContext";
 import "../../styles/components/header.css";
 
 const Header = () => {
   const navigate = useNavigate();
   const { totalItems } = useCart();
   const { totalWishlistItems } = useWishlist();
-  const { user } = useUser();
+  const { user } = useAuth();
 
   return (
     <header className="header">
@@ -95,7 +95,7 @@ const Header = () => {
         </div>
         {user ? (
           <Link to="/profile" className="login-link">
-            Tài khoản
+            {user.fullName || "Tài khoản"}
           </Link>
         ) : (
           <Link to="/auth-login" className="login-link">

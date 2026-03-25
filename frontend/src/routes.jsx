@@ -14,7 +14,7 @@ import ShoppingCart from './pages/ShoppingCart';
 import Wishlist from './pages/Wishlist';
 import AboutUs from './pages/AboutUs';
 import ContactUs from './pages/ContactUs';
-import TrelloBoard from './pages/TrelloBoard';
+
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrders from './pages/admin/AdminOrders';
@@ -23,44 +23,53 @@ import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { OrderProvider } from './context/OrderContext';
 import { UserProvider } from './context/UserContext';
+import { AuthProvider } from './context/AuthContext';
+import PrivateRoute from './components/auth/PrivateRoute';
 
 const AppRoutes = () => {
   return (
-    <UserProvider>
-      <CartProvider>
-        <WishlistProvider>
-          <OrderProvider>
-            <SizeProvider>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/search" element={<Search />} />
-                <Route path="/products/:category" element={<Products />} />
-                <Route path="/product/:category/:id" element={<ProductDetail />} />
-                <Route path="/ai-size" element={<AISizeAssistant />} />
-                <Route path="/auth-login" element={<Auth />} />
-                <Route path="/auth-register" element={<Auth />} />
-                <Route path="/cart" element={<ShoppingCart />} />
-                <Route path="/wishlist" element={<Wishlist />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/order-success/:orderId" element={<OrderSuccess />} />
-                <Route path="/orders" element={<OrderManagement />} />
-                <Route path="/track-order" element={<TrackOrder />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/about-us" element={<AboutUs />} />
-                <Route path="/contact-us" element={<ContactUs />} />
-                <Route path="/trello" element={<TrelloBoard />} />
-                {/* Admin Routes */}
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/products" element={<AdminProducts />} />
-                <Route path="/admin/orders" element={<AdminOrders />} />
-                {/* Redirect unknown routes to / */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </SizeProvider>
-          </OrderProvider>
-        </WishlistProvider>
-      </CartProvider>
-    </UserProvider>
+    <AuthProvider>
+      <UserProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <OrderProvider>
+              <SizeProvider>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/search" element={<Search />} />
+                  <Route path="/products/:category" element={<Products />} />
+                  <Route path="/product/:category/:id" element={<ProductDetail />} />
+                  <Route path="/ai-size" element={<AISizeAssistant />} />
+                  <Route path="/auth-login" element={<Auth />} />
+                  <Route path="/auth-register" element={<Auth />} />
+                  <Route path="/cart" element={<ShoppingCart />} />
+                  <Route path="/wishlist" element={<Wishlist />} />
+                  
+                  {/* Private Routes */}
+                  <Route element={<PrivateRoute />}>
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/order-success/:orderId" element={<OrderSuccess />} />
+                    <Route path="/orders" element={<OrderManagement />} />
+                    <Route path="/profile" element={<Profile />} />
+                    {/* Admin Routes */}
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/products" element={<AdminProducts />} />
+                    <Route path="/admin/orders" element={<AdminOrders />} />
+                  </Route>
+
+                  <Route path="/track-order" element={<TrackOrder />} />
+                  <Route path="/about-us" element={<AboutUs />} />
+                  <Route path="/contact-us" element={<ContactUs />} />
+                  
+                  {/* Redirect unknown routes to / */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </SizeProvider>
+            </OrderProvider>
+          </WishlistProvider>
+        </CartProvider>
+      </UserProvider>
+    </AuthProvider>
   );
 };
 

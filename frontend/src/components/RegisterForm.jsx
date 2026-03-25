@@ -2,15 +2,15 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../hooks/useUser';
+import { useAuth } from '../context/AuthContext';
 
 const RegisterForm = ({ onSwitchToLogin }) => {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm();
+  const { register, handleSubmit, watch, setError, formState: { errors } } = useForm();
   const [showPassword, setShowPassword] = useState(false);
   const [registerError, setRegisterError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const password = watch("password", "");
-  const { login } = useUser();
+  const { register: registerAuth } = useAuth();
   const navigate = useNavigate();
 
   const onSubmit = async (data) => {
@@ -18,28 +18,24 @@ const RegisterForm = ({ onSwitchToLogin }) => {
     setRegisterError('');
 
     try {
-      // Mock registration - Replace with real API call later
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Create mock user from registration data
-      const newUser = {
-        id: Date.now().toString(),
-        email: data.email,
-        firstName: data.email.split('@')[0],
-        lastName: 'User',
-        phone: '0123456789',
-        birthday: data.birthday,
-        gender: data.gender
-      };
-
-      // Auto-login after successful registration
-      login(newUser);
-
-      // Redirect to profile
-      navigate('/profile');
+      await registerAuth(data);
+      // Switch to login form immediately
+      if (onSwitchToLogin) {
+        onSwitchToLogin();
+      } else {
+        navigate('/auth-login');
+      }
     } catch (error) {
-      setRegisterError('Đăng ký thất bại. Vui lòng thử lại.');
+      console.error('Register error:', error);
+      if (error.fieldErrors) {
+        // Map field-specific errors
+        Object.keys(error.fieldErrors).forEach(field => {
+          setError(field, { type: 'manual', message: error.fieldErrors[field] });
+        });
+      } else {
+        const message = error.message || (error.error ? error.error : 'Đăng ký thất bại. Vui lòng thử lại.');
+        setRegisterError(message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -54,6 +50,18 @@ const RegisterForm = ({ onSwitchToLogin }) => {
             {registerError}
           </div>
         )}
+
+        <div className="form-group">
+          <label className="form-label">Họ và Tên* :</label>
+          <input
+            className="form-input"
+            placeholder="Nhập họ và tên đầy đủ"
+            {...register("fullName", {
+              required: "Họ và tên là bắt buộc"
+            })}
+          />
+          {errors.fullName && <p className="error-message">{errors.fullName.message}</p>}
+        </div>
 
         <div className="form-group">
           <label className="form-label">Địa Chỉ Email* :</label>
@@ -74,14 +82,12 @@ const RegisterForm = ({ onSwitchToLogin }) => {
             type={showPassword ? "text" : "password"}
             className="form-input"
             {...register("password", {
-              required: "Mật khẩu là bắt buộc",
-              minLength: { value: 8, message: "Tối thiểu 8 ký tự" },
-              maxLength: { value: 20, message: "Tối đa 20 ký tự" },
+              required: "Mật khẩu là bắt buộc"
             })}
           />
           {errors.password && <p className="error-message">{errors.password.message}</p>}
           <p className="helper-text">
-            Mật khẩu phải có từ 8 đến 20 kí tự bao gồm cả chữ và số. Có thể sử dụng các ký hiệu sau !@#$%^&*()
+            Mật khẩu (yêu cầu từ Backend: 6-20 ký tự, bao gồm cả chữ và số).
           </p>
         </div>
 
@@ -142,7 +148,12 @@ const RegisterForm = ({ onSwitchToLogin }) => {
         {errors.policy && <p className="error-message">{errors.policy.message}</p>}
 
         <button type="submit" className="btn-black" disabled={isLoading}>
-          {isLoading ? 'Đang đăng ký...' : 'Đăng Ký'}
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <span>Đang Đăng Ký...</span>
+            </div>
+          ) : 'Đăng Ký'}
         </button>
       </form>
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../hooks/useUser';
+import { useAuth } from '../context/AuthContext';
 import { useOrder } from '../hooks/useOrder';
 import Header from '../components/common/Header';
 import PersonalInfo from '../components/profile/PersonalInfo';
@@ -13,18 +13,20 @@ import LoyaltyRewards from '../components/profile/LoyaltyRewards';
 import '../styles/components/Profile.css';
 
 const Profile = () => {
-    const { user, logout } = useUser();
+    const { user, logout, loading } = useAuth();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('personal');
 
-    // Redirect to login if not authenticated
-    useEffect(() => {
-        if (!user) {
-            navigate('/auth-login');
-        }
-    }, [user, navigate]);
+    // Show loading spinner if auth state is being determined
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+            </div>
+        );
+    }
 
-    // Don't render if no user
+    // Don't render if no user (this is a fallback, PrivateRoute should handle this)
     if (!user) {
         return null;
     }
@@ -47,10 +49,10 @@ const Profile = () => {
                 {/* Profile Header */}
                 <div className="profile-header">
                     <div className="profile-avatar">
-                        <span>{user.firstName?.charAt(0)}{user.lastName?.charAt(0)}</span>
+                        <span>{user.fullName?.charAt(0)}</span>
                     </div>
                     <div className="profile-info">
-                        <h1>{user.firstName} {user.lastName}</h1>
+                        <h1>{user.fullName}</h1>
                         <p>{user.email}</p>
                     </div>
                     <button

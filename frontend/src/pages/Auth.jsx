@@ -14,8 +14,10 @@ const Auth = () => {
   useEffect(() => {
     if (location.pathname === '/auth-register') {
       setIsLogin(false);
+      document.title = "Dang ky – UN1 Shop";
     } else {
       setIsLogin(true);
+      document.title = "Dang nhap – UN1 Shop";
     }
   }, [location.pathname]);
 

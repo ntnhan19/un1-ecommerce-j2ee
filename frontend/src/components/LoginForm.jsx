@@ -2,44 +2,48 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../hooks/useUser';
+import { useAuth } from '../context/AuthContext';
 
 const LoginForm = ({ onSwitchToRegister }) => {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, setError, formState: { errors } } = useForm();
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useUser();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect when successfully authenticated
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      console.log('User is authenticated, navigating to profile...');
+      navigate('/profile');
+    }
+  }, [isAuthenticated, navigate]);
+
   const onSubmit = async (data) => {
+    console.log('Login attempt started with data:', data);
     setIsLoading(true);
     setLoginError('');
 
     try {
-      // Mock authentication - Replace with real API call later
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // Mock validation - Accept any email/password for now
-      // In production, this will be replaced with actual API call
-      const mockUser = {
-        id: Date.now().toString(),
-        email: data.email,
-        firstName: data.email.split('@')[0],
-        lastName: 'User',
-        phone: '0123456789'
-      };
-
-      // Login user
-      login(mockUser);
-
-      // Redirect to profile
-      navigate('/profile');
+      console.log('Calling login service...');
+      const result = await login(data.email, data.password);
+      console.log('Login service call finished, result:', result);
+      // Let useEffect handle redirection after state update
     } catch (error) {
-      setLoginError('Đăng nhập thất bại. Vui lòng thử lại.');
+      console.error('Login error caught in component:', error);
+      if (error.fieldErrors) {
+        // Map field-specific errors
+        Object.keys(error.fieldErrors).forEach(field => {
+          setError(field, { type: 'manual', message: error.fieldErrors[field] });
+        });
+      } else {
+        const message = error.message || (error.error ? error.error : 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+        setLoginError(message);
+      }
     } finally {
       setIsLoading(false);
+      console.log('Login attempt finished.');
     }
   };
 
@@ -102,7 +106,12 @@ const LoginForm = ({ onSwitchToRegister }) => {
           </div>
 
           <button type="submit" className="btn-black" disabled={isLoading}>
-            {isLoading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Đang Đăng Nhập...</span>
+              </div>
+            ) : 'Đăng Nhập'}
           </button>
 
           <div style={{ marginTop: '15px' }}>
