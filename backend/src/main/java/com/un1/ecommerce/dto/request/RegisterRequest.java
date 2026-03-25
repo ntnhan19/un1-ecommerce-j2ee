@@ -17,17 +17,17 @@ import com.un1.ecommerce.validation.PasswordMatch;
 @PasswordMatch
 public class RegisterRequest {
 
-    @NotBlank(message = "Email không được để trống")
-    @Email(message = "Email không đúng định dạng")
+    @NotBlank(message = "Email cannot be blank")
+    @Email(message = "Email should be valid")
     private String email;
 
-    @NotBlank(message = "Password không được để trống")
-    @Size(min = 6, message = "Password phải có ít nhất 6 ký tự")
+    @NotBlank(message = "Password cannot be blank")
+    @Size(min = 6, message = "Password must be at least 6 characters.")
     private String password;
 
-    @NotBlank(message = "Mật khẩu xác nhận không được để trống")
+    @NotBlank(message = "Confirm password cannot be blank")
     private String confirmPassword;
 
-    @NotBlank(message = "Họ tên không được để trống")
+    @NotBlank(message = "Full name cannot be blank")
     private String fullName;
 }

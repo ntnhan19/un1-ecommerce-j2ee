@@ -1,8 +1,9 @@
 package com.un1.ecommerce.exception;
 
-import com.un1.ecommerce.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import com.un1.ecommerce.dto.response.ErrorResponse;
 import com.un1.ecommerce.dto.response.ValidationErrorResponse;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -48,17 +49,17 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(MethodArgumentNotValidException.class)
         public ResponseEntity<ValidationErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
                 FieldError fieldError = ex.getBindingResult().getFieldError();
-                
+
                 String field = fieldError != null ? fieldError.getField() : "unknown";
                 String message = fieldError != null ? fieldError.getDefaultMessage() : "Validation error";
                 String rawCode = fieldError != null ? fieldError.getCode() : "INVALID";
-                
+
                 // Convert camelCase/PascalCase to UPPER_SNAKE_CASE
                 String code = rawCode.replaceAll("([a-z])([A-Z]+)", "$1_$2").toUpperCase();
-                
+
                 // Map specific codes
                 if ("SIZE".equals(code)) {
-                    code = "SIZE_MIN";
+                        code = "SIZE_MIN";
                 }
 
                 ValidationErrorResponse errorResponse = ValidationErrorResponse.builder()
@@ -66,7 +67,7 @@ public class GlobalExceptionHandler {
                                 .message(message)
                                 .code(code)
                                 .build();
-                                
+
                 return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
 

@@ -20,12 +20,10 @@ public class OrderItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull(message = "Order is required")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @NotNull(message = "Product is required")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
@@ -38,5 +36,5 @@ public class OrderItem {
     @NotNull(message = "Price is required")
     @Min(value = 0, message = "Price cannot be negative")
     @Column(nullable = false)
-    private BigDecimal price;
+    private BigDecimal price; // Snapshot price at the time of checkout
 }

@@ -9,15 +9,15 @@ import java.math.BigDecimal;
 
 @Data
 public class ProductRequest {
-    @NotBlank(message = "Tên sản phẩm không được để trống")
+    @NotBlank(message = "Product name cannot be blank")
     private String name;
 
-    @NotNull(message = "Giá không được để trống")
-    @Min(value = 0, message = "Giá không được âm")
+    @NotNull(message = "Price cannot be null")
+    @Min(value = 0, message = "Price cannot be negative")
     private BigDecimal price;
 
-    @NotNull(message = "Số lượng không được để trống")
-    @Min(value = 0, message = "Số lượng không được âm")
+    @NotNull(message = "Quantity cannot be null")
+    @Min(value = 0, message = "Quantity cannot be negative")
     private Integer stock;
 
     private String description;
