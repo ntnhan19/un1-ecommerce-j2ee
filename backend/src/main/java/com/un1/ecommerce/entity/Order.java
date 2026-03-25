@@ -1,6 +1,7 @@
 package com.un1.ecommerce.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -28,18 +29,27 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime orderDate;
+    @NotBlank(message = "Address is required")
+    @Column(nullable = false)
+    private String address;
+
+    @NotBlank(message = "Phone is required")
+    @Column(nullable = false)
+    private String phone;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status;
 
     @NotNull(message = "Total amount is required")
     @Column(nullable = false)
     private BigDecimal totalAmount;
 
-    @Column(nullable = false)
-    private String status;
-
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime orderDate;
 }
