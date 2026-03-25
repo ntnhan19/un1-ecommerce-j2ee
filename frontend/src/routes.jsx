@@ -14,6 +14,7 @@ import ShoppingCart from './pages/ShoppingCart';
 import Wishlist from './pages/Wishlist';
 import AboutUs from './pages/AboutUs';
 import ContactUs from './pages/ContactUs';
+import TrelloBoard from './pages/TrelloBoard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminOrders from './pages/admin/AdminOrders';
@@ -47,6 +48,7 @@ const AppRoutes = () => {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/about-us" element={<AboutUs />} />
                 <Route path="/contact-us" element={<ContactUs />} />
+                <Route path="/trello" element={<TrelloBoard />} />
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/products" element={<AdminProducts />} />

@@ -49,7 +49,7 @@ const ProductCard = ({ product, category }) => {
         <h3 className="product-name">{product.name}</h3>
         <p className="product-price">{product.price}</p>
         <Link
-          to={`/product/${category || product.category || "nam"}/${product.id}`}
+          to={`/product/${product.category || category || "nam"}/${product.id}`}
           className="product-link"
         >
           Chi tiết
