@@ -1,0 +1,80 @@
+{
+    "test_session": {
+        "tester": "Bích Luận",
+        "date": "2026-03-27",
+        "group": "FE AUTH",
+        "environment": "Development (localhost:5173)",
+        "api_endpoint": "http://localhost:8080/api/auth"
+    },
+    "results": {
+        "gui_tests": [
+            {
+                "id": "FE-GUI-001",
+                "description": "Trang Register hiển thị đúng layout",
+                "status": "PASS",
+                "note": "Layout đủ field, font Outfit/Inter đồng nhất, không lỗi Console."
+            },
+            {
+                "id": "FE-GUI-002",
+                "description": "Loading spinner khi submit",
+                "status": "PASS",
+                "note": "Nút ĐĂNG KÝ đổi thành spinner và disabled khi isLoading = true."
+            },
+            {
+                "id": "FE-GUI-003",
+                "description": "Error message đúng vị trí",
+                "status": "PASS",
+                "note": "Password '12345' báo lỗi minLength trực tiếp dưới field."
+            },
+            {
+                "id": "FE-GUI-004",
+                "description": "Responsive 360px",
+                "status": "PASS",
+                "note": "Layout co giãn tốt, không bị tràn viền (overflow-x)."
+            }
+        ],
+        "function_tests": [
+            {
+                "id": "FE-F-001",
+                "description": "Register thành công -> redirect",
+                "status": "PASS",
+                "note": "Redirect về trang login sau khi đăng ký thành công."
+            },
+            {
+                "id": "FE-F-002",
+                "description": "Register password '12345' -> lỗi từ API",
+                "status": "PASS",
+                "note": "API trả về 400 và UI hiển thị đúng lỗi từ fieldErrors."
+            },
+            {
+                "id": "FE-F-003",
+                "description": "Login thành công -> lưu token",
+                "status": "PASS",
+                "note": "Token JWT được lưu vào localStorage sau khi đăng nhập."
+            },
+            {
+                "id": "FE-F-004",
+                "description": "Login sai password",
+                "status": "PASS",
+                "note": "Hiển thị thông báo lỗi 'Đăng nhập thất bại' trên form."
+            },
+            {
+                "id": "FE-F-005",
+                "description": "PrivateRoute chặn khi chưa login",
+                "status": "PASS",
+                "note": "Truy cập /orders bị đẩy về /auth-login."
+            },
+            {
+                "id": "FE-F-006",
+                "description": "Axios gọi đúng API",
+                "status": "PASS",
+                "note": "Request gửi đúng đến target localhost:8080/api/auth."
+            }
+        ]
+    },
+    "summary": {
+        "gui_pass": "4/4",
+        "function_pass": "6/6",
+        "overall_status": "COMPLETED"
+    }
+}

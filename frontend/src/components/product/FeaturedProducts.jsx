@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "./ProductCard";
+import ProductCardSkeleton from "./ProductCardSkeleton";
+import productService from "../../services/productService";
 import "../../styles/components/featured-products.css";
 
 const CategorySplit = () => {
@@ -24,38 +26,41 @@ const CategorySplit = () => {
 };
 
 const FeaturedProducts = () => {
-  const products = [
-    {
-      id: 1,
-      name: "ÁO KHOÁC DÁNG NGẮN",
-      price: "2.599.000 VND",
-      image: "/src/assets/images/products/1.png",
-    },
-    {
-      id: 2,
-      name: "ÁO MĂNG TÔ KẺ SỌC ZW COLLECTION",
-      price: "5.999.000 VND",
-      image: "/src/assets/images/products/2.png",
-    },
-    {
-      id: 3,
-      name: "ÁO KHOÁC ĐỆM VAI MỀM",
-      price: "1.899.000 VND",
-      image: "/src/assets/images/products/3.png",
-    },
-    {
-      id: 4,
-      name: "ÁO KHOÁC CÀI CHÉO",
-      price: "5.999.000 VND",
-      image: "/src/assets/images/products/4.png",
-    },
-    {
-      id: 5,
-      name: "ÁO KHOÁC NHẸ CÓ TÚI",
-      price: "2.599.000 VND",
-      image: "/src/assets/images/products/5.png",
-    },
-  ];
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      setLoading(true);
+      try {
+        const data = await productService.getProducts({ size: 5, sort: "id,desc" });
+        setProducts(data.content || []);
+      } catch (err) {
+        console.error("Error fetching featured products:", err);
+        setError("Không thể tải sản phẩm nổi bật.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFeatured();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="featured-products">
+        <h2 className="featured-title">FEATURES PRODUCTS</h2>
+        <div className="products-grid">
+          {[...Array(5)].map((_, i) => (
+            <ProductCardSkeleton key={i} />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (error) return null;
+
 
   return (
     <section className="featured-products">

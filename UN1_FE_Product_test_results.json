@@ -1,0 +1,37 @@
+[
+  {
+    "TC_ID": "FE-PROD-GUI-001",
+    "Type": "GUI",
+    "Description": "Product Card hiển thị giá VND và ảnh đầu tiên",
+    "Status": "Passed",
+    "Note": "Đã format currency sang VND và mapping imageUrls[0]"
+  },
+  {
+    "TC_ID": "FE-PROD-GUI-002",
+    "Type": "GUI",
+    "Description": "Skeleton loading khi fetch danh sách",
+    "Status": "Passed",
+    "Note": "Hiển thị ProductCardSkeleton khi loading=true"
+  },
+  {
+    "TC_ID": "FE-PROD-F-001",
+    "Type": "Function",
+    "Description": "Fetch data theo Category (Nam/Nữ)",
+    "Status": "Passed",
+    "Note": "Đã map category 'nam' -> ID 1, 'nu' -> ID 2"
+  },
+  {
+    "TC_ID": "FE-PROD-F-003",
+    "Type": "Function",
+    "Description": "Search có debounce 500ms",
+    "Status": "Passed",
+    "Note": "Sử dụng useDebounce hook, API chỉ gọi sau 500ms dừng gõ"
+  },
+  {
+    "TC_ID": "FE-PROD-F-004",
+    "Type": "Function",
+    "Description": "Phân trang ?page=&size=",
+    "Status": "Passed",
+    "Note": "Đã kết nối Pageable của Spring Boot"
+  }
+]

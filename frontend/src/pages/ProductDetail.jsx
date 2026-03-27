@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
-import { getProductById } from "../utils/mockProducts";
+import productService from "../services/productService";
 import MySizeDrawer from "../components/common/MySizeDrawer";
 import { useSize } from "../context/SizeContext";
 import { useCart } from "../hooks/useCart";
@@ -13,7 +13,9 @@ import "../styles/pages/product-detail.css";
 const ProductDetail = () => {
     const { category, id } = useParams();
     const navigate = useNavigate();
-    const product = getProductById(category, id);
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const { toggleDrawer } = useSize();
     const { addToCart } = useCart();
 
@@ -22,7 +24,43 @@ const ProductDetail = () => {
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
 
-    if (!product) {
+    useEffect(() => {
+        const fetchProduct = async () => {
+            setLoading(true);
+            try {
+                const data = await productService.getProductById(id);
+                setProduct(data);
+            } catch (err) {
+                console.error("Error fetching product:", err);
+                setError("Sản phẩm không tồn tại hoặc đã bị xóa.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchProduct();
+        }
+    }, [id]);
+
+    const formatPrice = (price) => {
+        if (typeof price === 'string') return price;
+        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+    };
+
+    if (loading) {
+        return (
+            <div className="product-detail-page">
+                <Header />
+                <div className="loading-state" style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="spinner"></div>
+                </div>
+                <Footer />
+            </div>
+        );
+    }
+
+    if (error || !product) {
         return (
             <div className="product-detail-page">
                 <Header />
@@ -81,7 +119,7 @@ const ProductDetail = () => {
         navigate('/checkout');
     };
 
-    const images = product.images || [product.image];
+    const images = (product.imageUrls && product.imageUrls.length > 0) ? product.imageUrls : [product.image || "/placeholder-product.png"];
 
     return (
         <>
@@ -91,7 +129,7 @@ const ProductDetail = () => {
                     {/* Back Button */}
                     <button
                         className="back-button"
-                        onClick={() => navigate(`/products/${category}`)}
+                        onClick={() => navigate(`/products/${category || product.categoryName?.toLowerCase() || 'nam'}`)}
                     >
                         BACK
                     </button>
@@ -121,7 +159,7 @@ const ProductDetail = () => {
                             <h1 className="product-detail-title">Thông tin sản phẩm</h1>
 
                             <h2 className="product-detail-name">{product.name}</h2>
-                            <p className="product-detail-price">{product.price}</p>
+                            <p className="product-detail-price">{formatPrice(product.price)}</p>
 
                             <div className="product-actions">
                                 <button className="add-to-cart-detail" onClick={handleAddToCart}>
@@ -132,7 +170,7 @@ const ProductDetail = () => {
                                     Mua ngay
                                 </button>
                             </div>
-                            {/* Color Selection */}
+                            {/* Color Selection - Mocked if not in API */}
                             {product.colors && product.colors.length > 0 && (
                                 <div className="product-options">
                                     <h3 className="options-title">Màu sắc và kích thước</h3>
