@@ -23,4 +23,8 @@ public class ProductRequest {
     private String description;
 
     private Long categoryId;
+
+    private java.util.List<String> imageUrls;
+    private java.util.List<String> colors;
+    private java.util.List<String> sizes;
 }

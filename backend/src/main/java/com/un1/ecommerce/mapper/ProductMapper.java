@@ -16,6 +16,9 @@ public class ProductMapper {
                 .price(request.getPrice())
                 .stock(request.getStock())
                 .description(request.getDescription())
+                .imageUrls(request.getImageUrls())
+                .colors(request.getColors())
+                .sizes(request.getSizes())
                 // Category validation and assignment will be handled in Service layer
                 .build();
     }
@@ -31,6 +34,9 @@ public class ProductMapper {
                 .description(product.getDescription())
                 .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
                 .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
+                .imageUrls(product.getImageUrls())
+                .colors(product.getColors())
+                .sizes(product.getSizes())
                 .build();
     }
 
@@ -48,6 +54,15 @@ public class ProductMapper {
         }
         if (request.getDescription() != null) {
             product.setDescription(request.getDescription());
+        }
+        if (request.getImageUrls() != null) {
+            product.setImageUrls(request.getImageUrls());
+        }
+        if (request.getColors() != null) {
+            product.setColors(request.getColors());
+        }
+        if (request.getSizes() != null) {
+            product.setSizes(request.getSizes());
         }
     }
 }
