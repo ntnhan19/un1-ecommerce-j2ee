@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cập nhật đơn hàng</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        .header {
+            background-color: #000000;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            font-style: italic;
+            color: #ffffff;
+            letter-spacing: 2px;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-processing {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+
+        .status-shipping {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+
+        .status-delivered {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #666666;
+            margin-bottom: 30px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+            margin: 30px 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 30px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -32px;
+            top: 8px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            border: 3px solid #ffffff;
+            box-shadow: 0 0 0 2px #e0e0e0;
+        }
+
+        .timeline-item.active::before {
+            background-color: #2196f3;
+            box-shadow: 0 0 0 2px #2196f3;
+        }
+
+        .timeline-item.completed::before {
+            background-color: #4caf50;
+            box-shadow: 0 0 0 2px #4caf50;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 24px;
+            width: 2px;
+            height: calc(100% - 16px);
+            background-color: #e0e0e0;
+        }
+
+        .timeline-item:last-child::after {
+            display: none;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 5px;
+        }
+
+        .timeline-date {
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .order-info {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 500;
+            color: #666666;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #333333;
+        }
+
+        .tracking-number {
+            font-family: 'Courier New', monospace;
+            color: #2196f3;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: #2196f3;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .footer {
+            background-color: #f5f5f5;
+            padding: 30px 20px;
+            text-align: center;
+            color: #666666;
+            font-size: 14px;
+        }
+
+        .footer-links {
+            margin-top: 15px;
+        }
+
+        .footer-link {
+            color: #2196f3;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">un1</div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div style="text-align: center;">
+                <span class="status-badge status-{{STATUS_CLASS}}">{{STATUS_TEXT}}</span>
+            </div>
+
+            <h1 class="title">Đơn hàng của bạn đã được cập nhật</h1>
+            <p class="subtitle">{{STATUS_MESSAGE}}</p>
+
+            <!-- Order Info -->
+            <div class="order-info">
+                <div class="info-row">
+                    <span class="info-label">Mã đơn hàng:</span>
+                    <span class="info-value">{{ORDER_NUMBER}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Mã vận đơn:</span>
+                    <span class="info-value tracking-number">{{TRACKING_NUMBER}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ngày cập nhật:</span>
+                    <span class="info-value">{{UPDATE_DATE}}</span>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline">
+                <div class="timeline-item completed">
+                    <div class="timeline-title">Đơn hàng đã đặt</div>
+                    <div class="timeline-date">{{ORDER_DATE}}</div>
+                </div>
+                <div class="timeline-item {{PROCESSING_CLASS}}">
+                    <div class="timeline-title">Đang xử lý</div>
+                    <div class="timeline-date">{{PROCESSING_DATE}}</div>
+                </div>
+                <div class="timeline-item {{SHIPPING_CLASS}}">
+                    <div class="timeline-title">Đang giao hàng</div>
+                    <div class="timeline-date">{{SHIPPING_DATE}}</div>
+                </div>
+                <div class="timeline-item {{DELIVERED_CLASS}}">
+                    <div class="timeline-title">Đã giao hàng</div>
+                    <div class="timeline-date">{{DELIVERED_DATE}}</div>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <div style="text-align: center;">
+                <a href="{{TRACKING_URL}}" class="cta-button">Tra cứu vận chuyển</a>
+            </div>
+
+            <p style="color: #666666; font-size: 14px; margin-top: 30px; text-align: center;">
+                Bạn có thể theo dõi chi tiết hành trình giao hàng bằng cách click vào nút trên.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2026 UN1. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="{{WEBSITE_URL}}" class="footer-link">Trang chủ</a>
+                <a href="{{WEBSITE_URL}}/contact-us" class="footer-link">Liên hệ</a>
+                <a href="{{WEBSITE_URL}}/track-order" class="footer-link">Tra cứu đơn hàng</a>
+            </div>
+            <p style="margin-top: 15px; font-size: 12px;">
+                Email này được gửi tự động, vui lòng không trả lời.
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

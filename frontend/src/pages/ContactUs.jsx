@@ -1,5 +1,5 @@
 import React from 'react';
-import './ContactUs.css';
+import '../styles/components/ContactUs.css';
 // QUAN TRỌNG: Gọi file Header và Footer vào đây
 import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
@@ -12,7 +12,7 @@ const ContactUs = () => {
 
       <div className="contact-container">
         <h1 className="page-title">CONTACT US</h1>
-        
+
         <div className="contact-intro">
           <p>Chúng tôi rất mong nhận được phản hồi từ bạn, vui lòng liên hệ với chúng tôi qua nền tảng bên dưới, chúng tôi sẽ trả lời sớm nhất có thể.</p>
           <p className="email-highlight">Email address: placeholder1@.com</p>

@@ -48,7 +48,7 @@
   gap: 12px;
   align-items: center;
   justify-content: center;
-  background: none
+  background: none;
   padding: 20px 40px;
   border-radius: 20px;
 }
@@ -62,7 +62,8 @@
 
 /* Make category buttons uniform size and block-level centered */
 .category-btn,
-button.category-label {
+button.category-label,
+a.category-label {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -78,6 +79,14 @@ button.category-label {
   font-weight: 500;
   border-radius: 20px;
   text-align: center;
+  text-decoration: none;
+  color: #000000;
+  transition: all 0.3s ease;
+}
+
+a.category-label:hover {
+  background-color: #000000;
+  color: #ffffff;
 }
 
 /* Ensure label text inside remains styled */

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import ProductCard from "./ProductCard";
 import "../../styles/components/featured-products.css";
 
@@ -8,14 +9,14 @@ const CategorySplit = () => {
       <div className="category-item category-women">
         <img src="/src/assets/images/categories/woman.png" alt="Women" />
         <div className="category-overlay">
-          <button className="category-label">WOMEN</button>
+          <Link to="/products/nu" className="category-label">WOMEN</Link>
         </div>
       </div>
 
       <div className="category-item category-men">
         <img src="/src/assets/images/categories/man.png" alt="Men" />
         <div className="category-overlay">
-          <button className="category-label">MEN</button>
+          <Link to="/products/nam" className="category-label">MEN</Link>
         </div>
       </div>
     </div>

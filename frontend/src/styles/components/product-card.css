@@ -18,7 +18,8 @@
 .product-image {
   position: relative;
   width: 100%;
-  padding-bottom: 133.33%; /* 3:4 aspect ratio */
+  padding-bottom: 133.33%;
+  /* 3:4 aspect ratio */
   overflow: hidden;
   background: #d9d9d9;
   display: flex;
@@ -77,6 +78,38 @@
   opacity: 1;
   visibility: visible;
 }
+
+/* Wishlist Heart Button */
+.wishlist-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  color: #e74c3c;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.wishlist-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.wishlist-btn.active {
+  background: #e74c3c;
+  color: #fff;
+}
+
 
 .product-info {
   padding: 15px;

@@ -252,6 +252,11 @@
   display: inline-block;
   margin-bottom: 20px;
   transition: opacity 0.3s ease;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
 }
 
 .size-guide-link:hover {
@@ -311,30 +316,50 @@
   color: #ffffff;
 }
 
-/* Add to Cart Button */
-.add-to-cart-detail {
+/* Product Actions (Buttons) */
+.product-actions {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  justify-content: center;
+}
+
+.add-to-cart-detail,
+.buy-now-detail {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
-  width: 190px;
-  height: 50px;
-  background: #ffffff;
-  border: 1px solid #000000;
-  border-radius: 20px;
+  width: 180px;
+  height: 44px;
+  border-radius: 22px;
   font-family: 'Roboto', sans-serif;
   font-size: 14px;
-  line-height: 19px;
-  letter-spacing: 0.09em;
-  color: #000000;
+  letter-spacing: 0.05em;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.add-to-cart-detail {
+  background: #ffffff;
+  border: 1px solid #000000;
+  color: #000000;
 }
 
 .add-to-cart-detail:hover {
+  background: #f5f5f5;
+  color: #000000;
+}
+
+.buy-now-detail {
   background: #000000;
+  border: 1px solid #000000;
   color: #ffffff;
+}
+
+.buy-now-detail:hover {
+  background: #333333;
 }
 
 .cart-icon {
@@ -478,5 +503,218 @@
 
   .color-name {
     font-size: 10px;
+  }
+}
+
+/* AI Size Assistant Sidebar */
+.size-assistant-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.size-assistant-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 450px;
+  height: 100vh;
+  background: #ffffff;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  animation: slideIn 0.3s ease;
+  overflow-y: auto;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-bottom: 2px solid #e0e0e0;
+  background: #f5f5f5;
+}
+
+.sidebar-header h2 {
+  font-family: 'Roboto', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #000000;
+  margin: 0;
+}
+
+.close-sidebar {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #000000;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  transition: opacity 0.3s ease;
+}
+
+.close-sidebar:hover {
+  opacity: 0.6;
+}
+
+.sidebar-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.assistant-intro {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.intro-title {
+  font-family: 'Roboto', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #000000;
+  margin-bottom: 0.5rem;
+}
+
+.intro-subtitle {
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  color: #666666;
+  line-height: 1.5;
+}
+
+.size-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-field label {
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #000000;
+}
+
+.form-field input {
+  padding: 0.875rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.form-field input:focus {
+  outline: none;
+  border-color: #000000;
+}
+
+.form-field input::placeholder {
+  color: #999999;
+}
+
+.btn-get-size {
+  padding: 1rem;
+  background: #000000;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.btn-get-size:hover {
+  background: #333333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.size-recommendation {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #e0e0e0;
+}
+
+.recommendation-box {
+  background: #f5f5f5;
+  border: 2px solid #000000;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.recommendation-label {
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  color: #666666;
+  margin-bottom: 0.5rem;
+}
+
+.recommendation-size {
+  font-family: 'Roboto', sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #000000;
+  margin: 1rem 0;
+}
+
+.recommendation-note {
+  font-family: 'Roboto', sans-serif;
+  font-size: 13px;
+  color: #666666;
+  line-height: 1.5;
+  margin-top: 1rem;
+}
+
+/* Responsive for sidebar */
+@media (max-width: 768px) {
+  .size-assistant-sidebar {
+    width: 100%;
+    max-width: 100%;
   }
 }
