@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import '../../styles/components/Checkout.css';
 import { useUser } from '../../hooks/useUser';
+import { useAuth } from '../../context/AuthContext';
 
 const CheckoutForm = ({ formData, setFormData, errors }) => {
-  const { user, addresses } = useUser();
+  const { addresses } = useUser();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('new');
 
   const handleChange = (e) => {

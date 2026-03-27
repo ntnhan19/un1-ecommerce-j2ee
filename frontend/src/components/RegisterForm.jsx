@@ -18,7 +18,8 @@ const RegisterForm = ({ onSwitchToLogin }) => {
     setRegisterError('');
 
     try {
-      await registerAuth(data);
+      const { confirmPassword, policy, ...registerData } = data;
+      await registerAuth(registerData);
       // Switch to login form immediately
       if (onSwitchToLogin) {
         onSwitchToLogin();
@@ -82,7 +83,8 @@ const RegisterForm = ({ onSwitchToLogin }) => {
             type={showPassword ? "text" : "password"}
             className="form-input"
             {...register("password", {
-              required: "Mật khẩu là bắt buộc"
+              required: "Mật khẩu là bắt buộc",
+              minLength: { value: 6, message: "Mật khẩu phải có ít nhất 6 ký tự" }
             })}
           />
           {errors.password && <p className="error-message">{errors.password.message}</p>}
@@ -147,13 +149,12 @@ const RegisterForm = ({ onSwitchToLogin }) => {
         </div>
         {errors.policy && <p className="error-message">{errors.policy.message}</p>}
 
-        <button type="submit" className="btn-black" disabled={isLoading}>
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <span>Đang Đăng Ký...</span>
-            </div>
-          ) : 'Đăng Ký'}
+        <button 
+          type="submit" 
+          className="btn-black auth-button" 
+          disabled={isLoading}
+        >
+          {isLoading ? <div className="spinner"></div> : 'ĐĂNG KÝ'}
         </button>
       </form>
 

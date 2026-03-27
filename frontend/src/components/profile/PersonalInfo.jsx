@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useUser } from '../../hooks/useUser';
 
 const PersonalInfo = ({ user: initialUser }) => {
-    const { updateProfile } = useUser();
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
-        firstName: initialUser?.firstName || '',
-        lastName: initialUser?.lastName || '',
+        firstName: initialUser?.fullName?.split(' ').pop() || '',
+        lastName: initialUser?.fullName?.split(' ').slice(0, -1).join(' ') || '',
         email: initialUser?.email || '',
         phone: initialUser?.phone || ''
     });
@@ -21,7 +19,7 @@ const PersonalInfo = ({ user: initialUser }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        updateProfile(formData);
+        console.log('Update profile not implemented in this version:', formData);
         setIsEditing(false);
     };
 

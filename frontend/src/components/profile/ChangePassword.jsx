@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { useUser } from '../../hooks/useUser';
+import { useAuth } from '../../context/AuthContext';
 
 const ChangePassword = () => {
-    const { user } = useUser();
+    const { user } = useAuth();
     const [formData, setFormData] = useState({
         currentPassword: '',
         newPassword: '',

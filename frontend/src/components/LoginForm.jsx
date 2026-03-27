@@ -15,20 +15,16 @@ const LoginForm = ({ onSwitchToRegister }) => {
   // Redirect when successfully authenticated
   React.useEffect(() => {
     if (isAuthenticated) {
-      console.log('User is authenticated, navigating to profile...');
       navigate('/profile');
     }
   }, [isAuthenticated, navigate]);
 
   const onSubmit = async (data) => {
-    console.log('Login attempt started with data:', data);
     setIsLoading(true);
     setLoginError('');
 
     try {
-      console.log('Calling login service...');
       const result = await login(data.email, data.password);
-      console.log('Login service call finished, result:', result);
       // Let useEffect handle redirection after state update
     } catch (error) {
       console.error('Login error caught in component:', error);
@@ -43,7 +39,6 @@ const LoginForm = ({ onSwitchToRegister }) => {
       }
     } finally {
       setIsLoading(false);
-      console.log('Login attempt finished.');
     }
   };
 
@@ -105,13 +100,12 @@ const LoginForm = ({ onSwitchToRegister }) => {
             <a href="#" className="link-text">Chính Sách Bảo Mật</a>
           </div>
 
-          <button type="submit" className="btn-black" disabled={isLoading}>
-            {isLoading ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Đang Đăng Nhập...</span>
-              </div>
-            ) : 'Đăng Nhập'}
+          <button 
+            type="submit" 
+            className="btn-black auth-button" 
+            disabled={isLoading}
+          >
+            {isLoading ? <div className="spinner"></div> : 'ĐĂNG NHẬP'}
           </button>
 
           <div style={{ marginTop: '15px' }}>

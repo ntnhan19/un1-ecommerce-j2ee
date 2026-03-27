@@ -25,6 +25,7 @@ import { OrderProvider } from './context/OrderContext';
 import { UserProvider } from './context/UserContext';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/auth/PrivateRoute';
+import AdminRoute from './components/auth/AdminRoute';
 
 const AppRoutes = () => {
   return (
@@ -51,7 +52,10 @@ const AppRoutes = () => {
                     <Route path="/order-success/:orderId" element={<OrderSuccess />} />
                     <Route path="/orders" element={<OrderManagement />} />
                     <Route path="/profile" element={<Profile />} />
-                    {/* Admin Routes */}
+                  </Route>
+
+                  {/* Admin Routes */}
+                  <Route element={<AdminRoute />}>
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/products" element={<AdminProducts />} />
                     <Route path="/admin/orders" element={<AdminOrders />} />
