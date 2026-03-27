@@ -19,4 +19,7 @@ public class ProductResponse {
     private String description;
     private Long categoryId;
     private String categoryName;
+    private java.util.List<String> imageUrls;
+    private java.util.List<String> colors;
+    private java.util.List<String> sizes;
 }
