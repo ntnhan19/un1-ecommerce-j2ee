@@ -15,4 +15,8 @@ public interface OrderService {
     OrderResponse updateStatus(Long orderId, OrderStatus status);
 
     OrderResponse cancelOrder(Long orderId, User user);
+
+    long countTotalOrders();
+    java.math.BigDecimal sumTotalRevenue();
+    java.util.List<OrderResponse> getAllOrders();
 }

@@ -129,4 +129,24 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
         return OrderResponse.fromEntity(savedOrder);
     }
+
+    @Override
+    public long countTotalOrders() {
+        return orderRepository.count();
+    }
+
+    @Override
+    public java.math.BigDecimal sumTotalRevenue() {
+        return orderRepository.findAll().stream()
+                .filter(order -> order.getStatus() != OrderStatus.CANCELED)
+                .map(Order::getTotalAmount)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
+
+    @Override
+    public java.util.List<OrderResponse> getAllOrders() {
+        return orderRepository.findAll().stream()
+                .map(OrderResponse::fromEntity)
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

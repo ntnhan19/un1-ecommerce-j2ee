@@ -56,13 +56,16 @@ public class ProductMapper {
             product.setDescription(request.getDescription());
         }
         if (request.getImageUrls() != null) {
-            product.setImageUrls(request.getImageUrls());
+            product.getImageUrls().clear();
+            product.getImageUrls().addAll(request.getImageUrls());
         }
         if (request.getColors() != null) {
-            product.setColors(request.getColors());
+            product.getColors().clear();
+            product.getColors().addAll(request.getColors());
         }
         if (request.getSizes() != null) {
-            product.setSizes(request.getSizes());
+            product.getSizes().clear();
+            product.getSizes().addAll(request.getSizes());
         }
     }
 }

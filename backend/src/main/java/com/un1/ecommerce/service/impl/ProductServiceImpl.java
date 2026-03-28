@@ -81,10 +81,10 @@ public class ProductServiceImpl implements ProductService {
             List<Predicate> predicates = new ArrayList<>();
             
             if (keyword != null && !keyword.trim().isEmpty()) {
+                System.out.println("DEBUG: Searching products with keyword: [" + keyword + "]");
                 String searchKeyword = "%" + keyword.toLowerCase() + "%";
-                Predicate nameLike = cb.like(cb.lower(root.get("name")), searchKeyword);
-                Predicate descLike = cb.like(cb.lower(root.get("description")), searchKeyword);
-                predicates.add(cb.or(nameLike, descLike));
+                Predicate nameLike = cb.like(cb.lower(root.get("name").as(String.class)), searchKeyword);
+                predicates.add(nameLike);
             }
             
             if (categoryId != null) {
@@ -96,5 +96,17 @@ public class ProductServiceImpl implements ProductService {
 
         Page<Product> products = productRepository.findAll(spec, pageable);
         return products.map(productMapper::toResponse);
+    }
+
+    @Override
+    public long countTotalProducts() {
+        return productRepository.count();
+    }
+
+    @Override
+    public java.util.List<ProductResponse> getAllProductsList() {
+        return productRepository.findAll().stream()
+                .map(productMapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 }
