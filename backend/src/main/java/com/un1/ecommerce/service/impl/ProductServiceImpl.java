@@ -97,4 +97,16 @@ public class ProductServiceImpl implements ProductService {
         Page<Product> products = productRepository.findAll(spec, pageable);
         return products.map(productMapper::toResponse);
     }
+
+    @Override
+    public long countTotalProducts() {
+        return productRepository.count();
+    }
+
+    @Override
+    public java.util.List<ProductResponse> getAllProductsList() {
+        return productRepository.findAll().stream()
+                .map(productMapper::toResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
 }

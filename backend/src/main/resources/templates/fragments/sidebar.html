@@ -1,0 +1,42 @@
+<div th:fragment="sidebar(activeLink)" class="sidebar d-flex flex-column flex-shrink-0">
+    <a href="/admin/dashboard" class="d-flex align-items-center mb-4 me-md-auto text-white text-decoration-none">
+        <i class="bi bi-shop fs-3 me-2"></i>
+        <span class="fs-4 fw-bold">UN1 ADMIN</span>
+    </a>
+    <hr class="border-secondary mb-4">
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item">
+            <a th:href="@{/admin/dashboard}" class="nav-link"
+                th:classappend="${activeLink == 'dashboard' ? 'active' : ''}">
+                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/admin/products}" class="nav-link"
+                th:classappend="${activeLink == 'products' ? 'active' : ''}">
+                <i class="bi bi-box-seam me-2"></i> Products
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/admin/categories}" class="nav-link"
+                th:classappend="${activeLink == 'categories' ? 'active' : ''}">
+                <i class="bi bi-tags me-2"></i> Categories
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/admin/orders}" class="nav-link" th:classappend="${activeLink == 'orders' ? 'active' : ''}">
+                <i class="bi bi-cart3 me-2"></i> Orders
+            </a>
+        </li>
+        <li>
+            <a th:href="@{/admin/users}" class="nav-link" th:classappend="${activeLink == 'users' ? 'active' : ''}">
+                <i class="bi bi-people me-2"></i> Users
+            </a>
+        </li>
+    </ul>
+    <div class="mt-auto">
+        <div class="p-3 bg-dark rounded-3 text-center">
+            <p class="small text-muted mb-0">Un1-Ecommerce</p>
+        </div>
+    </div>
+</div>
