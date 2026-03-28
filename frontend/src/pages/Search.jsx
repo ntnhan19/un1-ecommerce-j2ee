@@ -11,11 +11,14 @@ import "../styles/pages/products.css";
 const Search = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const query = searchParams.get("q") || "";
-    // Debounce the query to prevent rapid API calls
-    const debouncedQuery = useDebounce(query, 500);
+    
+    // Local state for the input field to avoid instantaneous URL updates
+    const [searchTerm, setSearchTerm] = useState(query);
+    // Debounce the local search term
+    const debouncedTerm = useDebounce(searchTerm, 500);
 
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [totalPages, setTotalPages] = useState(0);
 
@@ -28,11 +31,17 @@ const Search = () => {
         type: null,
     });
 
-    const fetchSearchResults = useCallback(async (searchTerm) => {
+    const fetchSearchResults = useCallback(async (term, pageNum) => {
+        if (!term.trim()) {
+            setProducts([]);
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         setError(null);
         try {
-            const data = await productService.searchProducts(searchTerm, page, size);
+            const data = await productService.searchProducts(term, pageNum, size);
             setProducts(data.content || []);
             setTotalPages(data.totalPages || 0);
         } catch (err) {
@@ -41,16 +50,25 @@ const Search = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, size]);
+    }, [size]);
 
+    // Effect to sync URL with debounced term and trigger fetch
     useEffect(() => {
-        if (debouncedQuery.trim()) {
-            fetchSearchResults(debouncedQuery);
-        } else {
-            setProducts([]);
-            setLoading(false);
+        if (debouncedTerm !== query) {
+            const newParams = new URLSearchParams(searchParams);
+            newParams.set("q", debouncedTerm);
+            newParams.set("page", "0");
+            setSearchParams(newParams);
         }
-    }, [debouncedQuery, fetchSearchResults]);
+        
+        // Always fetch if we have a debounced term (or clear if empty)
+        fetchSearchResults(debouncedTerm, page);
+    }, [debouncedTerm, page, fetchSearchResults, setSearchParams, query, searchParams]);
+
+    // Handle initial incoming URL query
+    useEffect(() => {
+        setSearchTerm(query);
+    }, [query]);
 
     const handleFilterChange = (filterType, value) => {
         setSelectedFilters((prev) => ({
@@ -60,9 +78,14 @@ const Search = () => {
     };
 
     const handlePageChange = (newPage) => {
-        searchParams.set("page", newPage.toString());
-        setSearchParams(searchParams);
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set("page", newPage.toString());
+        setSearchParams(newParams);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleInputChange = (e) => {
+        setSearchTerm(e.target.value);
     };
 
     return (
@@ -75,12 +98,8 @@ const Search = () => {
                         <input
                             type="text"
                             placeholder="Tiếp tục tìm kiếm..."
-                            value={query}
-                            onChange={(e) => {
-                                searchParams.set("q", e.target.value);
-                                searchParams.set("page", "0"); // Reset to page 0 on new search
-                                setSearchParams(searchParams);
-                            }}
+                            value={searchTerm}
+                            onChange={handleInputChange}
                             style={{
                                 width: '100%',
                                 padding: '12px 20px',
@@ -107,7 +126,7 @@ const Search = () => {
                         {error ? (
                             <div className="error-state">
                                 <p>{error}</p>
-                                <button onClick={() => fetchSearchResults(debouncedQuery)}>Thử lại</button>
+                                <button onClick={() => fetchSearchResults(debouncedTerm, page)}>Thử lại</button>
                             </div>
                         ) : (
                             <>

@@ -9,6 +9,8 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   width: 100%;
+  content-visibility: auto;
+  contain-intrinsic-size: 1000px;
 }
 
 /* Responsive Design */

@@ -64,12 +64,30 @@ const ProductDetail = () => {
         return (
             <div className="product-detail-page">
                 <Header />
-                <div className="product-not-found">
-                    <h2>Sản phẩm không tồn tại</h2>
-                    <button onClick={() => navigate(`/products/${category}`)}>
-                        Quay lại
-                    </button>
-                </div>
+                <main className="product-detail-main" style={{ paddingTop: '150px', textAlign: 'center', minHeight: '60vh' }}>
+                    <div className="not-found-container" style={{ padding: '50px 20px' }}>
+                        <h1 style={{ fontSize: '120px', color: '#f0f0f0', margin: '0' }}>404</h1>
+                        <h2 style={{ fontSize: '24px', margin: '20px 0' }}>Rất tiếc! Sản phẩm không tồn tại</h2>
+                        <p style={{ color: '#666', marginBottom: '30px', maxWidth: '500px', margin: '0 auto 30px' }}>
+                            Sản phẩm bạn đang tìm kiếm có thể đã hết hàng, bị gỡ bỏ hoặc bạn đã nhập sai đường dẫn.
+                        </p>
+                        <button 
+                            className="buy-now-btn" 
+                            onClick={() => navigate(`/products/${category || 'nam'}`)}
+                            style={{ 
+                                padding: '15px 40px', 
+                                background: '#000', 
+                                color: '#fff', 
+                                border: 'none',
+                                cursor: 'pointer',
+                                letterSpacing: '2px',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            QUAY LẠI CỬA HÀNG
+                        </button>
+                    </div>
+                </main>
                 <Footer />
             </div>
         );
@@ -99,7 +117,7 @@ const ProductDetail = () => {
             id: `${product.id}-${selectedSize}-${selectedColor}`, // Unique ID for variation
             baseId: product.id,
             size: selectedSize,
-            color: product.colors?.[selectedColor]?.name || "Default",
+            color: product.colors?.[selectedColor] || "Default",
             image: images[selectedImage],
             // Note: addToCart in CartContext currently forces +1, but it will store the custom attributes
         };
@@ -170,78 +188,71 @@ const ProductDetail = () => {
                                     Mua ngay
                                 </button>
                             </div>
-                            {/* Color Selection - Mocked if not in API */}
+                            {/* Color Selection - Updated for List<String> from API */}
                             {product.colors && product.colors.length > 0 && (
-                                <div className="product-options">
-                                    <h3 className="options-title">Màu sắc và kích thước</h3>
-                                    <div className="color-swatches">
+                                <div className="product-options" style={{ marginBottom: '25px' }}>
+                                    <h3 className="options-title">Màu sắc</h3>
+                                    <div className="color-options-list" style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
                                         {product.colors.map((color, index) => (
-                                            <div key={index} className="color-option">
-                                                <div
-                                                    className={`color-swatch ${selectedColor === index ? "selected" : ""
-                                                        }`}
-                                                    style={{ backgroundColor: color.hex }}
-                                                    onClick={() => setSelectedColor(index)}
-                                                />
-                                                <span className="color-name">{color.name}</span>
-                                            </div>
+                                            <button
+                                                key={index}
+                                                className={`color-btn ${selectedColor === index ? "active" : ""}`}
+                                                onClick={() => setSelectedColor(index)}
+                                                style={{
+                                                    padding: '8px 16px',
+                                                    border: selectedColor === index ? '2px solid #000' : '1px solid #ddd',
+                                                    background: selectedColor === index ? '#f5f5f5' : '#fff',
+                                                    cursor: 'pointer',
+                                                    fontSize: '14px',
+                                                    fontWeight: '500',
+                                                    borderRadius: '2px',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {color}
+                                            </button>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Size Selection */}
+                            {/* Size Selection - Simplified for List<String> from API */}
                             {product.sizes && product.sizes.length > 0 && (
                                 <div className="size-selection">
-                                    <button
-                                        className="size-guide-link"
-                                        onClick={() => toggleDrawer(true)}
-                                        type="button"
-                                    >
-                                        Tư vấn size theo số đo →
-                                    </button>
-                                    <div className="size-chart">
-                                        <div className="size-chart-row size-chart-header">
-                                            <div className="size-cell header-cell">Size</div>
-                                            {product.sizes.map((size) => (
-                                                <div
-                                                    key={size}
-                                                    className={`size-cell ${selectedSize === size ? "selected" : ""
-                                                        }`}
-                                                    onClick={() => setSelectedSize(size)}
-                                                >
-                                                    {size}
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="size-chart-row">
-                                            <div className="size-cell header-cell">Ngực (cm)</div>
-                                            {product.sizes.map((size) => (
-                                                <div key={size} className="size-cell">
-                                                    {product.sizeChart?.[size]?.chest || "-"}
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="size-chart-row">
-                                            <div className="size-cell header-cell">Vai (cm)</div>
-                                            {product.sizes.map((size) => (
-                                                <div key={size} className="size-cell">
-                                                    {product.sizeChart?.[size]?.shoulder || "-"}
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="size-chart-row">
-                                            <div className="size-cell header-cell">Dài (cm)</div>
-                                            {product.sizes.map((size) => (
-                                                <div key={size} className="size-cell">
-                                                    {product.sizeChart?.[size]?.length || "-"}
-                                                </div>
-                                            ))}
-                                        </div>
+                                    <div className="size-selection-header">
+                                        <h3 className="options-title">Kích thước</h3>
+                                        <button
+                                            className="size-guide-link"
+                                            onClick={() => toggleDrawer(true)}
+                                            type="button"
+                                            style={{ background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', padding: '0', fontSize: '13px' }}
+                                        >
+                                            Hướng dẫn chọn size theo số đo →
+                                        </button>
+                                    </div>
+                                    <div className="size-options-list" style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+                                        {product.sizes.map((size) => (
+                                            <button
+                                                key={size}
+                                                className={`size-btn ${selectedSize === size ? "active" : ""}`}
+                                                onClick={() => setSelectedSize(size)}
+                                                style={{
+                                                    padding: '10px 20px',
+                                                    border: selectedSize === size ? '2px solid #000' : '1px solid #ddd',
+                                                    background: selectedSize === size ? '#000' : '#fff',
+                                                    color: selectedSize === size ? '#fff' : '#000',
+                                                    cursor: 'pointer',
+                                                    minWidth: '60px',
+                                                    fontWeight: 'bold',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {size}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                             )}
-
 
                         </div>
                     </div>
