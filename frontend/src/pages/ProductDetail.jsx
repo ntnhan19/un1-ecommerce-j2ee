@@ -261,7 +261,7 @@ const ProductDetail = () => {
                     <div className="product-description-section">
                         <h3 className="description-title">Mô tả sản phẩm</h3>
                         <div className="description-content">
-                            {product.description && <p>{product.description}</p>}
+                            {product.description && <p style={{ whiteSpace: "pre-line" }}>{product.description}</p>}
                             {product.material && (
                                 <div className="material-info">
                                     <strong>CHẤT LIỆU:</strong>
