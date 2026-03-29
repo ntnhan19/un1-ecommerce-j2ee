@@ -142,7 +142,7 @@ const Search = () => {
                                             disabled={page === 0} 
                                             onClick={() => handlePageChange(page - 1)}
                                         >
-                                            Sau
+                                            Trước
                                         </button>
                                         {[...Array(totalPages)].map((_, i) => (
                                             <button
