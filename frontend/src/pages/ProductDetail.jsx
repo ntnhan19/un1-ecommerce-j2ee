@@ -23,6 +23,7 @@ const ProductDetail = () => {
     const [selectedSize, setSelectedSize] = useState("");
     const [selectedImage, setSelectedImage] = useState(0);
     const [quantity, setQuantity] = useState(1);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -261,7 +262,39 @@ const ProductDetail = () => {
                     <div className="product-description-section">
                         <h3 className="description-title">Mô tả sản phẩm</h3>
                         <div className="description-content">
-                            {product.description && <p style={{ whiteSpace: "pre-line" }}>{product.description}</p>}
+                            {product.description && (
+                                <div style={{ marginBottom: '1rem' }}>
+                                    <p style={{ 
+                                        whiteSpace: "pre-line",
+                                        display: isExpanded ? 'block' : '-webkit-box',
+                                        WebkitLineClamp: isExpanded ? 'unset' : 3,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                        lineHeight: '1.6',
+                                        color: '#444'
+                                    }}>
+                                        {product.description}
+                                    </p>
+                                    {product.description.length > 200 && (
+                                        <button 
+                                            onClick={() => setIsExpanded(!isExpanded)}
+                                            style={{
+                                                background: 'none',
+                                                border: 'none',
+                                                color: '#000',
+                                                fontWeight: 'bold',
+                                                textDecoration: 'underline',
+                                                cursor: 'pointer',
+                                                padding: '0',
+                                                marginTop: '5px',
+                                                fontSize: '14px'
+                                            }}
+                                        >
+                                            {isExpanded ? 'Rút gọn' : 'Xem thêm'}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                             {product.material && (
                                 <div className="material-info">
                                     <strong>CHẤT LIỆU:</strong>

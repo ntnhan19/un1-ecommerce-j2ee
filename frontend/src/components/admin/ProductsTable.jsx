@@ -478,6 +478,7 @@ const ProductsTable = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [editProduct, setEditProduct] = useState(null);
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [viewDescription, setViewDescription] = useState(null);
 
     const filtered = products.filter((p) => {
         const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
@@ -541,6 +542,7 @@ const ProductsTable = () => {
                         <thead>
                             <tr>
                                 <th>Sản phẩm</th>
+                                <th>Mô tả</th>
                                 <th>Danh mục</th>
                                 <th>Giá</th>
                                 <th>Tồn kho</th>
@@ -552,7 +554,7 @@ const ProductsTable = () => {
                         <tbody>
                             {filtered.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7}>
+                                    <td colSpan={8}>
                                         <div className="admin-empty">
                                             <div className="admin-empty-icon">🔍</div>
                                             <h3>Không tìm thấy sản phẩm</h3>
@@ -582,6 +584,26 @@ const ProductsTable = () => {
                                                     <div className="admin-table-product-name">{product.name}</div>
                                                     <div className="admin-table-sub">ID: {product.id}</div>
                                                 </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div 
+                                                className="admin-table-desc" 
+                                                title="Click để xem chi tiết"
+                                                onClick={() => setViewDescription(product)}
+                                                style={{
+                                                    maxWidth: '220px',
+                                                    fontSize: '0.8rem',
+                                                    lineHeight: '1.4',
+                                                    color: '#666',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {product.description || <em style={{ color: '#ccc' }}>Chưa có mô tả</em>}
                                             </div>
                                         </td>
                                         <td style={{ textTransform: 'capitalize' }}>
@@ -656,6 +678,33 @@ const ProductsTable = () => {
                     onClose={() => setModalOpen(false)}
                     onSave={handleSave}
                 />
+            )}
+
+            {/* View Description Modal */}
+            {viewDescription && (
+                <div className="admin-modal-overlay" onClick={() => setViewDescription(null)}>
+                    <div className="admin-modal" style={{ maxWidth: 500 }}>
+                        <div className="admin-modal-header">
+                            <span className="admin-modal-title">Chi tiết mô tả: {viewDescription.name}</span>
+                            <button className="admin-modal-close" onClick={() => setViewDescription(null)}>✕</button>
+                        </div>
+                        <div className="admin-modal-body">
+                            <div style={{ 
+                                whiteSpace: 'pre-line', 
+                                fontSize: '0.9rem', 
+                                lineHeight: '1.6',
+                                color: '#333'
+                            }}>
+                                {viewDescription.description || <em style={{ color: '#ccc' }}>Chưa có mô tả</em>}
+                            </div>
+                        </div>
+                        <div className="admin-modal-footer">
+                            <button className="admin-btn admin-btn-secondary" onClick={() => setViewDescription(null)}>
+                                Đóng
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Delete Confirm */}
