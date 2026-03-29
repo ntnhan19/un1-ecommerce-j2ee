@@ -541,6 +541,7 @@ const ProductsTable = () => {
                         <thead>
                             <tr>
                                 <th>Sản phẩm</th>
+                                <th>Mô tả</th>
                                 <th>Danh mục</th>
                                 <th>Giá</th>
                                 <th>Tồn kho</th>
@@ -552,7 +553,7 @@ const ProductsTable = () => {
                         <tbody>
                             {filtered.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7}>
+                                    <td colSpan={8}>
                                         <div className="admin-empty">
                                             <div className="admin-empty-icon">🔍</div>
                                             <h3>Không tìm thấy sản phẩm</h3>
@@ -582,6 +583,25 @@ const ProductsTable = () => {
                                                     <div className="admin-table-product-name">{product.name}</div>
                                                     <div className="admin-table-sub">ID: {product.id}</div>
                                                 </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div 
+                                                className="admin-table-desc" 
+                                                title={product.description}
+                                                style={{
+                                                    maxWidth: '220px',
+                                                    fontSize: '0.8rem',
+                                                    lineHeight: '1.4',
+                                                    color: '#666',
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: 2,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                    cursor: 'help'
+                                                }}
+                                            >
+                                                {product.description || <em style={{ color: '#ccc' }}>Chưa có mô tả</em>}
                                             </div>
                                         </td>
                                         <td style={{ textTransform: 'capitalize' }}>
