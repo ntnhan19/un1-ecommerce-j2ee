@@ -136,9 +136,10 @@ const Search = () => {
                                     loading={loading} 
                                 />
                                 
-                                {totalPages > 1 && (
+                                {totalPages > 0 && (
                                     <div className="pagination">
                                         <button 
+                                            className="pagination-btn prev"
                                             disabled={page === 0} 
                                             onClick={() => handlePageChange(page - 1)}
                                         >
@@ -147,13 +148,14 @@ const Search = () => {
                                         {[...Array(totalPages)].map((_, i) => (
                                             <button
                                                 key={i}
-                                                className={page === i ? "active" : ""}
+                                                className={`pagination-number ${page === i ? "active" : ""}`}
                                                 onClick={() => handlePageChange(i)}
                                             >
                                                 {i + 1}
                                             </button>
                                         ))}
                                         <button 
+                                            className="pagination-btn next"
                                             disabled={page === totalPages - 1} 
                                             onClick={() => handlePageChange(page + 1)}
                                         >
