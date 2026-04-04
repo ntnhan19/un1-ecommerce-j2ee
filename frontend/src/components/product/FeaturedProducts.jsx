@@ -6,22 +6,69 @@ import productService from "../../services/productService";
 import "../../styles/components/featured-products.css";
 
 const CategorySplit = () => {
+  const [activeAlbum, setActiveAlbum] = useState(null);
+  const [collections, setCollections] = useState([]);
+
+  useEffect(() => {
+    const fetchCollections = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/public/product-collections");
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data)) {
+            setCollections(data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch collections:", err);
+      }
+    };
+    fetchCollections();
+  }, []);
+
   return (
-    <div className="category-split">
-      <div className="category-item category-women">
-        <img src="/src/assets/images/categories/woman.png" alt="Women" />
-        <div className="category-overlay">
-          <Link to="/products/nu" className="category-label">WOMEN</Link>
-        </div>
+    <>
+      <div className="category-split">
+        {collections.map((col) => (
+          <div 
+            key={col.id} 
+            className="category-item" 
+            onClick={() => setActiveAlbum(col)}
+          >
+            <img src={col.coverUrl} alt={col.name} />
+            <div className="category-overlay">
+              <div className="collection-info">
+                <span className="collection-tag">COLLECTION</span>
+                <button className="category-label-pill">{col.name}</button>
+                <p className="collection-desc">{col.description}</p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="category-item category-men">
-        <img src="/src/assets/images/categories/man.png" alt="Men" />
-        <div className="category-overlay">
-          <Link to="/products/nam" className="category-label">MEN</Link>
+      {/* Album Modal Pop-up */}
+      {activeAlbum && (
+        <div className="album-modal-overlay" onClick={() => setActiveAlbum(null)}>
+          <div className="album-modal-content" onClick={e => e.stopPropagation()}>
+            <button className="album-close-btn" onClick={() => setActiveAlbum(null)}>&times;</button>
+            <div className="album-gallery">
+              {activeAlbum.galleryUrls?.map((url, index) => (
+                <img key={index} src={url} alt={`Album ${index}`} className="album-img" />
+              ))}
+            </div>
+            <div className="album-footer">
+              <Link 
+                to={`/products/${activeAlbum.name.toLowerCase().includes('women') ? 'nu' : 'nam'}`} 
+                className="album-shop-btn"
+              >
+                SHOP THE COLLECTION
+              </Link>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };
 
@@ -34,7 +81,7 @@ const FeaturedProducts = () => {
     const fetchFeatured = async () => {
       setLoading(true);
       try {
-        const data = await productService.getProducts({ size: 5, sort: "id,desc" });
+        const data = await productService.getProducts({ featured: true, size: 5, sort: "id,desc" });
         setProducts(data.content || []);
       } catch (err) {
         console.error("Error fetching featured products:", err);
@@ -64,8 +111,6 @@ const FeaturedProducts = () => {
 
   return (
     <section className="featured-products">
-      {/* Category split (Women / Men) - follows Figma layout */}
-
       <h2 className="featured-title">FEATURES PRODUCTS</h2>
 
       <div className="products-grid">

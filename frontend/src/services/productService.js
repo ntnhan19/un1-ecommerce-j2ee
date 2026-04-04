@@ -29,6 +29,32 @@ const productService = {
     } catch (error) {
       throw error.response?.data || new Error('Search failed');
     }
+  },
+
+  createProduct: async (productData) => {
+    try {
+      const response = await axiosInstance.post('/api/products', productData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to create product');
+    }
+  },
+
+  updateProduct: async (id, productData) => {
+    try {
+      const response = await axiosInstance.put(`/api/products/${id}`, productData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to update product');
+    }
+  },
+
+  deleteProduct: async (id) => {
+    try {
+      await axiosInstance.delete(`/api/products/${id}`);
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to delete product');
+    }
   }
 };
 

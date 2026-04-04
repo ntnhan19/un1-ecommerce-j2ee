@@ -2,9 +2,9 @@
 .hero {
   position: relative;
   width: 100%;
-  height: 650px;
+  height: calc(100vh - 90px); /* Full view minus header */
   margin-top: 92px;
-  background: #ffffff;
+  background: #000;
   overflow: hidden;
 }
 
@@ -14,6 +14,7 @@
   height: 100%;
 }
 
+/* --- Image Slider Logic --- */
 .hero-background {
   position: absolute;
   top: 0;
@@ -23,11 +24,58 @@
 }
 
 .hero-background img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: opacity 1.5s ease-in-out, transform 3s ease-out;
+  opacity: 0;
+  transform: scale(1.05); /* Subtle zoom in effect */
 }
 
+.hero-background img.active {
+  opacity: 1;
+  transform: scale(1);
+  z-index: 1;
+}
+
+/* --- Marquee Text --- */
+.marquee-container {
+  position: absolute;
+  top: 40px;
+  width: 100%;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(5px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  padding: 10px 0;
+}
+
+.marquee-content {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee 30s linear infinite;
+}
+
+.marquee-text {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.2rem;
+  padding: 0 40px;
+  text-transform: uppercase;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* --- Content Overlay --- */
 .hero-overlay {
   position: absolute;
   top: 0;
@@ -35,31 +83,88 @@
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 5;
+  color: #fff;
+  text-align: center;
 }
 
-.hero-title {
-  font-family: "Roboto", sans-serif;
-  font-size: 48px;
-  font-weight: 400;
-  line-height: 56px;
-  letter-spacing: 0.065em;
-  color: #ffffff;
-  text-align: center;
-  text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+.hero-tag {
+  font-size: 0.9rem;
+  letter-spacing: 0.5rem;
+  margin-bottom: 20px;
+  font-weight: 300;
+  animation: fadeInUp 1s ease-out;
+}
+
+.hero-title-main {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: clamp(3rem, 10vw, 6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 40px;
+  line-height: 0.9;
+  animation: fadeInUp 1s ease-out 0.2s both;
+}
+
+.hero-shop-btn {
+  padding: 18px 45px;
+  background: #fff;
+  color: #000;
+  border: none;
+  font-weight: 600;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s;
+  animation: fadeInUp 1s ease-out 0.4s both;
+}
+
+.hero-shop-btn:hover {
+  background: #000;
+  color: #fff;
+  transform: translateY(-5px);
+}
+
+/* --- Slider Indicators --- */
+.slider-indicators {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 15px;
+}
+
+.indicator {
+  width: 50px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.indicator.active {
+  background: #fff;
+  width: 80px;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .hero {
-    height: 400px;
+    height: 550px;
     margin-top: 70px;
   }
 
-  .hero-title {
-    font-size: 32px;
-    line-height: 40px;
+  .hero-title-main {
+    font-size: 3.5rem;
   }
 }

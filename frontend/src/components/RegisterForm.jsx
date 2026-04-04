@@ -18,7 +18,7 @@ const RegisterForm = ({ onSwitchToLogin }) => {
     setRegisterError('');
 
     try {
-      const { confirmPassword, policy, ...registerData } = data;
+      const { policy, ...registerData } = data;
       await registerAuth(registerData);
       // Switch to login form immediately
       if (onSwitchToLogin) {

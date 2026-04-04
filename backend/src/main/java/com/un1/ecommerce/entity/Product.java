@@ -46,15 +46,14 @@ public class Product {
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
-    @Column(name = "image_url")
+    @Column(name = "image_url", length = 1000)
     @Builder.Default
     private List<String> imageUrls = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "product_colors", joinColumns = @JoinColumn(name = "product_id"))
-    @Column(name = "color")
     @Builder.Default
-    private List<String> colors = new ArrayList<>();
+    private List<ProductColor> colors = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "product_sizes", joinColumns = @JoinColumn(name = "product_id"))
@@ -65,6 +64,10 @@ public class Product {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean featured = false;
 
     @CreationTimestamp
     @Column(updatable = false)

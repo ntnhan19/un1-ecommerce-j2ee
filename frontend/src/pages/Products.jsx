@@ -14,7 +14,7 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalPages, setTotalPages] = useState(0);
-  
+
   const page = parseInt(searchParams.get("page") || "0");
   const size = parseInt(searchParams.get("size") || "10");
 
@@ -37,7 +37,7 @@ const Products = () => {
     setError(null);
     try {
       const categoryId = getCategoryId(category);
-      const data = await productService.getProducts({ 
+      const data = await productService.getProducts({
         category: categoryId,
         page,
         size,
@@ -92,7 +92,7 @@ const Products = () => {
           </div>
           <div className="cover-logo">
             <img
-              src="/src/assets/images/un1-logo.png"
+              src="/un1-logo.png"
               alt="UN1"
               className="cover-logo-image"
             />
@@ -113,16 +113,16 @@ const Products = () => {
               </div>
             ) : (
               <>
-                <ProductGrid 
-                  products={products} 
-                  category={category} 
-                  loading={loading} 
+                <ProductGrid
+                  products={products}
+                  category={category}
+                  loading={loading}
                 />
-                
+
                 {totalPages > 1 && (
                   <div className="pagination">
-                    <button 
-                      disabled={page === 0} 
+                    <button
+                      disabled={page === 0}
                       onClick={() => handlePageChange(page - 1)}
                     >
                       Trước
@@ -136,8 +136,8 @@ const Products = () => {
                         {i + 1}
                       </button>
                     ))}
-                    <button 
-                      disabled={page === totalPages - 1} 
+                    <button
+                      disabled={page === totalPages - 1}
                       onClick={() => handlePageChange(page + 1)}
                     >
                       Sau

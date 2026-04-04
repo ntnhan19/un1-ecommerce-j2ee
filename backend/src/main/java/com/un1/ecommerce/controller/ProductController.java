@@ -25,6 +25,7 @@ public class ProductController {
     public ResponseEntity<Page<ProductResponse>> getAllProducts(
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "category", required = false) Long categoryId,
+            @RequestParam(value = "featured", required = false) Boolean featured,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "sort", defaultValue = "id,desc") String sort) {
@@ -36,7 +37,7 @@ public class ProductController {
         Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<ProductResponse> products = productService.getAllProducts(keyword, categoryId, pageable);
+        Page<ProductResponse> products = productService.getAllProducts(keyword, categoryId, featured, pageable);
         return ResponseEntity.ok(products);
     }
 

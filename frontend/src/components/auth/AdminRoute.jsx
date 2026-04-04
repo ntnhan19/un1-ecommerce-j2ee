@@ -12,7 +12,7 @@ const AdminRoute = () => {
         );
     }
 
-    if (!token || user?.role !== 'ADMIN') {
+    if (!token || !user?.roles?.includes('ROLE_ADMIN')) {
         return <Navigate to="/" />;
     }
 

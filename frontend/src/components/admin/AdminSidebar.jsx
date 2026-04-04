@@ -5,6 +5,7 @@ import '../../styles/components/Admin.css';
 const navItems = [
     { path: '/admin', label: 'Tổng quan', icon: '', exact: true },
     { path: '/admin/products', label: 'Sản phẩm', icon: '' },
+    { path: '/admin/collections', label: 'Bộ sưu tập', icon: '' },
     { path: '/admin/orders', label: 'Đơn hàng', icon: '' },
 ];
 
@@ -20,7 +21,7 @@ const AdminSidebar = () => {
         <aside className="admin-sidebar">
             {/* Logo */}
             <div className="admin-sidebar-logo">
-                <img src="/src/assets/images/un1-logo.png" alt="UN1" />
+                <img src="/un1-logo.png" alt="UN1" />
                 <span className="admin-sidebar-label">Admin Panel</span>
             </div>
 

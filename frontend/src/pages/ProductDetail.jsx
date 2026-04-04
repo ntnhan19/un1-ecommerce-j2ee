@@ -72,13 +72,13 @@ const ProductDetail = () => {
                         <p style={{ color: '#666', marginBottom: '30px', maxWidth: '500px', margin: '0 auto 30px' }}>
                             Sản phẩm bạn đang tìm kiếm có thể đã hết hàng, bị gỡ bỏ hoặc bạn đã nhập sai đường dẫn.
                         </p>
-                        <button 
-                            className="buy-now-btn" 
+                        <button
+                            className="buy-now-btn"
                             onClick={() => navigate(`/products/${category || 'nam'}`)}
-                            style={{ 
-                                padding: '15px 40px', 
-                                background: '#000', 
-                                color: '#fff', 
+                            style={{
+                                padding: '15px 40px',
+                                background: '#000',
+                                color: '#fff',
                                 border: 'none',
                                 cursor: 'pointer',
                                 letterSpacing: '2px',
@@ -118,7 +118,7 @@ const ProductDetail = () => {
             id: `${product.id}-${selectedSize}-${selectedColor}`, // Unique ID for variation
             baseId: product.id,
             size: selectedSize,
-            color: product.colors?.[selectedColor] || "Default",
+            color: product.colors?.[selectedColor]?.name || "Default",
             image: images[selectedImage],
             // Note: addToCart in CartContext currently forces +1, but it will store the custom attributes
         };
@@ -138,7 +138,15 @@ const ProductDetail = () => {
         navigate('/checkout');
     };
 
-    const images = (product.imageUrls && product.imageUrls.length > 0) ? product.imageUrls : [product.image || "/placeholder-product.png"];
+    const allImages = (product.imageUrls && product.imageUrls.length > 0) ? product.imageUrls : [product.image || "/placeholder-product.png"];
+    
+    // Mỗi màu có 3 tấm ảnh, tui sẽ lọc ra đúng 3 tấm thuộc về màu đang chọn
+    const imagesPerPage = 3;
+    const startIndex = selectedColor * imagesPerPage;
+    const images = allImages.slice(startIndex, startIndex + imagesPerPage);
+    
+    // Nếu tập con bị rỗng (do chưa nhập đủ ảnh cho màu đó), lấy ảnh đại diện đầu tiên
+    if (images.length === 0) images.push(allImages[0]);
 
     return (
         <>
@@ -160,7 +168,7 @@ const ProductDetail = () => {
                                 <img src={images[selectedImage]} alt={product.name} />
                             </div>
                             <div className="thumbnail-images">
-                                {images.slice(0, 4).map((img, index) => (
+                                {images.map((img, index) => (
                                     <div
                                         key={index}
                                         className={`thumbnail ${selectedImage === index ? "active" : ""
@@ -192,27 +200,40 @@ const ProductDetail = () => {
                             {/* Color Selection - Updated for List<String> from API */}
                             {product.colors && product.colors.length > 0 && (
                                 <div className="product-options" style={{ marginBottom: '25px' }}>
-                                    <h3 className="options-title">Màu sắc</h3>
-                                    <div className="color-options-list" style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
-                                        {product.colors.map((color, index) => (
-                                            <button
-                                                key={index}
-                                                className={`color-btn ${selectedColor === index ? "active" : ""}`}
-                                                onClick={() => setSelectedColor(index)}
-                                                style={{
-                                                    padding: '8px 16px',
-                                                    border: selectedColor === index ? '2px solid #000' : '1px solid #ddd',
-                                                    background: selectedColor === index ? '#f5f5f5' : '#fff',
-                                                    cursor: 'pointer',
-                                                    fontSize: '14px',
-                                                    fontWeight: '500',
-                                                    borderRadius: '2px',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                            >
-                                                {color}
-                                            </button>
-                                        ))}
+                                    <h3 className="options-title">Màu sắc: <strong>{product.colors[selectedColor]?.name}</strong></h3>
+                                    <div className="color-options-list" style={{ display: 'flex', gap: '15px', marginTop: '12px', flexWrap: 'wrap' }}>
+                                        {product.colors.map((color, index) => {
+                                            const hex = color.hex || '#000000';
+                                            const isLight = (parseInt(hex.slice(1, 3), 16) * 299 + parseInt(hex.slice(3, 5), 16) * 587 + parseInt(hex.slice(5, 7), 16) * 114) / 1000 > 200;
+
+                                            return (
+                                                <div 
+                                                    key={index} 
+                                                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}
+                                                    onClick={() => {
+                                                        setSelectedColor(index);
+                                                        setSelectedImage(0); // Reset về ảnh đầu tiên của nhóm màu mới
+                                                    }}
+                                                >
+                                                    <button
+                                                        className={`color-btn ${selectedColor === index ? "active" : ""}`}
+                                                        style={{
+                                                            width: '36px',
+                                                            height: '36px',
+                                                            borderRadius: '50%',
+                                                            backgroundColor: hex,
+                                                            border: selectedColor === index ? '2px solid #000' : (isLight ? '1px solid #ddd' : '1px solid transparent'),
+                                                            boxShadow: selectedColor === index ? '0 0 0 2px #fff, 0 0 0 3px #000' : 'none',
+                                                            cursor: 'pointer',
+                                                            padding: 0,
+                                                            transition: 'all 0.2s transform',
+                                                            transform: selectedColor === index ? 'scale(1.1)' : 'scale(1)'
+                                                        }}
+                                                        title={color.name}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
@@ -264,7 +285,7 @@ const ProductDetail = () => {
                         <div className="description-content">
                             {product.description && (
                                 <div style={{ marginBottom: '1rem' }}>
-                                    <p style={{ 
+                                    <p style={{
                                         whiteSpace: "pre-line",
                                         display: isExpanded ? 'block' : '-webkit-box',
                                         WebkitLineClamp: isExpanded ? 'unset' : 3,
@@ -276,7 +297,7 @@ const ProductDetail = () => {
                                         {product.description}
                                     </p>
                                     {product.description.length > 200 && (
-                                        <button 
+                                        <button
                                             onClick={() => setIsExpanded(!isExpanded)}
                                             style={{
                                                 background: 'none',

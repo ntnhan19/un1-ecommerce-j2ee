@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { mockAdminProducts, formatCurrency, COLOR_MAP, getColorHex } from '../../utils/mockAdmin';
+import productService from '../../services/productService';
 import '../../styles/components/Admin.css';
 
 // ---- Color Swatch Component ----
@@ -267,8 +268,10 @@ const EMPTY_PRODUCT = {
     price: '',
     stock: '',
     status: 'active',
+    featured: false,
     colors: [],
     sizes: 'S, M, L, XL',
+    imageUrls: '', // Added for free-form URL input
     description: '',
     material: '',
     careInstructions: '',
@@ -287,6 +290,7 @@ const ProductModal = ({ product, onClose, onSave }) => {
                 ...EMPTY_PRODUCT,
                 ...product,
                 sizes: Array.isArray(product.sizes) ? product.sizes.join(', ') : product.sizes,
+                imageUrls: Array.isArray(product.imageUrls) ? product.imageUrls.join(', ') : (product.imageUrls || ''),
                 sizeChart: product.sizeChart || EMPTY_PRODUCT.sizeChart
             }
             : EMPTY_PRODUCT
@@ -307,14 +311,7 @@ const ProductModal = ({ product, onClose, onSave }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave({
-            ...form,
-            price: Number(form.price),
-            stock: Number(form.stock),
-            sizes: form.sizes.split(',').map((s) => s.trim()).filter(Boolean),
-            // colors already an array of {name, hex}
-            // description and sizeChart are already in form
-        });
+        onSave(form);
     };
 
     return (
@@ -354,6 +351,18 @@ const ProductModal = ({ product, onClose, onSave }) => {
                                 </select>
                             </div>
                             <div className="admin-form-group">
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', height: '100%', marginTop: '1.5rem' }}>
+                                    <input
+                                        type="checkbox"
+                                        name="featured"
+                                        checked={form.featured}
+                                        onChange={(e) => setForm(prev => ({ ...prev, featured: e.target.checked }))}
+                                        style={{ width: '18px', height: '18px' }}
+                                    />
+                                    <span>Sản phẩm nổi bật</span>
+                                </label>
+                            </div>
+                            <div className="admin-form-group">
                                 <label>Giá (VND) *</label>
                                 <input
                                     name="price"
@@ -363,6 +372,25 @@ const ProductModal = ({ product, onClose, onSave }) => {
                                     placeholder="VD: 1399000"
                                     required
                                     min="0"
+                                />
+                            </div>
+                            <div className="admin-form-group full-width">
+                                <label>Link hình ảnh (Phân cách bằng dấu phẩy) *</label>
+                                <textarea
+                                    name="imageUrls"
+                                    value={form.imageUrls}
+                                    onChange={handleChange}
+                                    placeholder="VD: https://images.com/anh1.jpg, https://images.com/anh2.jpg"
+                                    rows={2}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: '6px',
+                                        fontFamily: 'inherit',
+                                        resize: 'vertical'
+                                    }}
+                                    required
                                 />
                             </div>
                             <div className="admin-form-group">
@@ -472,7 +500,8 @@ const ProductModal = ({ product, onClose, onSave }) => {
 
 // ---- Main Table ----
 const ProductsTable = () => {
-    const [products, setProducts] = useState(mockAdminProducts);
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [modalOpen, setModalOpen] = useState(false);
@@ -480,24 +509,71 @@ const ProductsTable = () => {
     const [deleteConfirm, setDeleteConfirm] = useState(null);
     const [viewDescription, setViewDescription] = useState(null);
 
-    const filtered = products.filter((p) => {
+    const fetchProducts = async () => {
+        setLoading(true);
+        try {
+            const data = await productService.getProducts({ size: 100 }); // Get all for simplicity
+            setProducts(data.content || []);
+        } catch (error) {
+            console.error('Failed to fetch products:', error);
+            alert('Không thể tải danh sách sản phẩm');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
+
+    const filtered = (products || []).filter((p) => {
         const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
-        const matchCat = categoryFilter === 'all' || p.category === categoryFilter;
+        const matchCat = categoryFilter === 'all' || p.categoryName?.toLowerCase() === categoryFilter.toLowerCase() || p.category === categoryFilter;
         return matchSearch && matchCat;
     });
 
     const handleAdd = () => { setEditProduct(null); setModalOpen(true); };
     const handleEdit = (product) => { setEditProduct(product); setModalOpen(true); };
-    const handleDelete = (id) => { setProducts((prev) => prev.filter((p) => p.id !== id)); setDeleteConfirm(null); };
-
-    const handleSave = (data) => {
-        if (editProduct) {
-            setProducts((prev) => prev.map((p) => (p.id === editProduct.id ? { ...p, ...data } : p)));
-        } else {
-            const newId = Math.max(...products.map((p) => p.id)) + 1;
-            setProducts((prev) => [...prev, { ...data, id: newId, image: '' }]);
+    const handleDelete = async (id) => { 
+        try {
+            await productService.deleteProduct(id);
+            setProducts((prev) => prev.filter((p) => p.id !== id));
+            setDeleteConfirm(null);
+        } catch (error) {
+            alert('Xóa thất bại: ' + (error.message || 'Lỗi hệ thống'));
         }
-        setModalOpen(false);
+    };
+
+    const handleSave = async (data) => {
+        // Map frontend 'nam'/'nu' to backend categoryId
+        const categoryId = data.category === 'nam' ? 1 : (data.category === 'nu' ? 2 : null);
+        
+        // Final payload preparation
+        const payload = {
+            ...data,
+            price: Number(data.price),
+            stock: Number(data.stock),
+            categoryId,
+            sizes: typeof data.sizes === 'string' 
+                ? data.sizes.split(',').map(s => s.trim()).filter(Boolean) 
+                : data.sizes,
+            imageUrls: typeof data.imageUrls === 'string' 
+                ? data.imageUrls.split(',').map(u => u.trim()).filter(Boolean) 
+                : data.imageUrls
+        };
+
+        try {
+            if (editProduct) {
+                const updated = await productService.updateProduct(editProduct.id, payload);
+                setProducts((prev) => prev.map((p) => (p.id === editProduct.id ? updated : p)));
+            } else {
+                const created = await productService.createProduct(payload);
+                setProducts((prev) => [created, ...prev]);
+            }
+            setModalOpen(false);
+        } catch (error) {
+            alert('Lưu thất bại: ' + (error.message || 'Lỗi hệ thống'));
+        }
     };
 
     const statusLabel = (s) => (s === 'active' ? 'Đang bán' : 'Hết hàng');
@@ -568,7 +644,9 @@ const ProductsTable = () => {
                                         {/* Product name + image */}
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                {product.image ? (
+                                                {product.imageUrls && product.imageUrls.length > 0 ? (
+                                                    <img src={product.imageUrls[0]} alt={product.name} className="admin-table-img" />
+                                                ) : product.image ? (
                                                     <img src={product.image} alt={product.name} className="admin-table-img" />
                                                 ) : (
                                                     <div style={{
@@ -581,7 +659,19 @@ const ProductsTable = () => {
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <div className="admin-table-product-name">{product.name}</div>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                        <div className="admin-table-product-name">{product.name}</div>
+                                                        {product.featured && (
+                                                            <span style={{ 
+                                                                background: '#fef3c7', 
+                                                                color: '#92400e', 
+                                                                fontSize: '0.65rem', 
+                                                                padding: '2px 6px', 
+                                                                borderRadius: '4px',
+                                                                fontWeight: 700
+                                                            }}>NỔI BẬT</span>
+                                                        )}
+                                                    </div>
                                                     <div className="admin-table-sub">ID: {product.id}</div>
                                                 </div>
                                             </div>
@@ -607,7 +697,7 @@ const ProductsTable = () => {
                                             </div>
                                         </td>
                                         <td style={{ textTransform: 'capitalize' }}>
-                                            {product.category === 'nam' ? 'Nam' : 'Nữ'}
+                                            {product.categoryName || (product.category === 'nam' ? 'Nam' : 'Nữ')}
                                         </td>
                                         <td style={{ fontWeight: 600, color: '#333' }}>
                                             {formatCurrency(product.price)}
@@ -621,10 +711,10 @@ const ProductsTable = () => {
                                         {/* Color Swatches column */}
                                         <td>
                                             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                                                {product.colors.slice(0, 4).map((c) => (
+                                                {product.colors && product.colors.slice(0, 4).map((c) => (
                                                     <ColorSwatch key={c.name} color={c} size="sm" />
                                                 ))}
-                                                {product.colors.length > 4 && (
+                                                {product.colors && product.colors.length > 4 && (
                                                     <div style={{
                                                         display: 'flex', flexDirection: 'column', alignItems: 'center',
                                                         gap: '0.25rem',
@@ -644,8 +734,8 @@ const ProductsTable = () => {
                                         </td>
 
                                         <td>
-                                            <span className={`status-badge ${product.status}`}>
-                                                {statusLabel(product.status)}
+                                            <span className={`status-badge ${product.stock > 0 ? 'active' : 'out_of_stock'}`}>
+                                                {product.stock > 0 ? 'Đang bán' : 'Hết hàng'}
                                             </span>
                                         </td>
                                         <td>

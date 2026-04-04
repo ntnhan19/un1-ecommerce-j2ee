@@ -20,6 +20,7 @@ public class ProductResponse {
     private Long categoryId;
     private String categoryName;
     private java.util.List<String> imageUrls;
-    private java.util.List<String> colors;
+    private java.util.List<com.un1.ecommerce.dto.ColorDto> colors;
     private java.util.List<String> sizes;
+    private Boolean featured;
 }

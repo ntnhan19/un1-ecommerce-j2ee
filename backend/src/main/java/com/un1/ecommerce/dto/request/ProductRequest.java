@@ -25,6 +25,7 @@ public class ProductRequest {
     private Long categoryId;
 
     private java.util.List<String> imageUrls;
-    private java.util.List<String> colors;
+    private java.util.List<com.un1.ecommerce.dto.ColorDto> colors;
     private java.util.List<String> sizes;
+    private Boolean featured;
 }
