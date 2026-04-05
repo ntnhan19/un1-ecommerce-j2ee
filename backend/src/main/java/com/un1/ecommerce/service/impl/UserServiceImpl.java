@@ -77,19 +77,35 @@ public class UserServiceImpl implements UserService {
                 .orElseGet(() -> roleRepository.save(Role.builder().name(roleName).build()));
     }
 
-    private AuthResponse createAuthResponse(User user) {
-        String token = jwtUtil.generateToken(user.getEmail());
+    @Override
+    public long countTotalUsers() {
+        return userRepository.count();
+    }
+
+    @Override
+    public java.util.List<UserResponse> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::mapToUserResponse)
+                .collect(Collectors.toList());
+    }
+
+    private UserResponse mapToUserResponse(User user) {
         Set<String> roleNames = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.toSet());
 
-        UserResponse userResponse = UserResponse.builder()
+        return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .roles(roleNames)
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    private AuthResponse createAuthResponse(User user) {
+        String token = jwtUtil.generateToken(user.getEmail());
+        UserResponse userResponse = mapToUserResponse(user);
 
         return AuthResponse.builder()
                 .token(token)

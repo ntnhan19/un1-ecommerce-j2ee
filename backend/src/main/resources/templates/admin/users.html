@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/header :: header}"></head>
+<body>
+    <div th:replace="~{fragments/sidebar :: sidebar('users')}"></div>
+    
+    <div class="main-content">
+        <nav th:replace="~{fragments/header :: navbar}"></nav>
+        
+        <div class="container-fluid mt-4 mb-5">
+            <h2 class="mb-4 fw-bold text-primary"><i class="bi bi-people"></i> Quản lý Thành viên</h2>
+            
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="bg-info text-white p-3">
+                    <h5 class="m-0">Danh sách Thành viên</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">ID</th>
+                                    <th>Email</th>
+                                    <th>Họ tên</th>
+                                    <th>Vai trò</th>
+                                    <th>Ngày tạo</th>
+                                    <th class="ps-4">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="u : ${users}">
+                                    <td class="ps-4 fw-bold" th:text="${u.id}">1</td>
+                                    <td th:text="${u.email}">user@example.com</td>
+                                    <td th:text="${u.fullName}">User Name</td>
+                                    <td>
+                                        <div class="d-flex gap-1 flex-wrap">
+                                            <span th:each="role : ${u.roles}" 
+                                                  class="badge bg-light text-dark border px-2 py-1" 
+                                                  th:text="${role}">ROLE_USER</span>
+                                        </div>
+                                    </td>
+                                    <td th:text="${#temporals.format(u.createdAt, 'dd-MM-yyyy')}">Date...</td>
+                                    <td class="ps-4">
+                                        <button class="btn btn-sm btn-outline-info rounded-pill px-3 shadow-none">Xem chi tiết</button>
+                                    </td>
+                                </tr>
+                                <tr th:if="${users.empty}">
+                                    <td colspan="6" class="text-center py-5">
+                                        <i class="bi bi-people fs-1 text-muted d-block mb-3"></i>
+                                        <span class="text-muted fs-5">Chưa có thành viên nào.</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+        <div th:replace="~{fragments/footer :: footer}"></div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

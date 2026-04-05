@@ -11,4 +11,6 @@ public interface ProductService {
     ProductResponse updateProduct(Long id, ProductRequest request);
     void deleteProduct(Long id);
     Page<ProductResponse> getAllProducts(String keyword, Long categoryId, Boolean featured, Pageable pageable);
+    long countTotalProducts();
+    java.util.List<ProductResponse> getAllProductsList();
 }
