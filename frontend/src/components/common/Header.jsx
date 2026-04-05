@@ -9,7 +9,12 @@ const Header = () => {
   const navigate = useNavigate();
   const { totalItems } = useCart();
   const { totalWishlistItems } = useWishlist();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <header className="header">
@@ -36,7 +41,7 @@ const Header = () => {
       <div className="header-center">
         <Link to="/" className="logo-link">
           <img
-            src="/src/assets/images/un1-logo.png"
+            src="/un1-logo.png"
             alt="UN1"
             className="logo-image"
           />
@@ -72,7 +77,7 @@ const Header = () => {
         <div className="icon-shopping-card">
           <Link to="/cart">
             <img
-              src="/src/assets/images/icon-shopping-card.svg"
+              src="/icon-shopping-card.svg"
               alt="Shopping"
               className="header-icon-image"
             />
@@ -84,7 +89,7 @@ const Header = () => {
         <div className="icon-liked-product">
           <Link to="/wishlist">
             <img
-              src="/src/assets/images/icon-liked-product.svg"
+              src="/icon-liked-product.svg"
               alt="Like"
               className="header-icon-image"
             />
@@ -93,10 +98,38 @@ const Header = () => {
             )}
           </Link>
         </div>
-        {user ? (
-          <Link to="/profile" className="login-link">
-            {user.fullName || "Tài khoản"}
-          </Link>
+        {user && user.roles?.includes('ROLE_ADMIN') ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <Link to="/admin" className="admin-status-link" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px',
+              background: '#000',
+              color: '#fff',
+              padding: '6px 14px',
+              borderRadius: '100px',
+              fontSize: '10px',
+              fontWeight: '800',
+              letterSpacing: '1.5px',
+              textDecoration: 'none',
+              boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+            }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80' }}></span>
+              WORKSPACE
+            </Link>
+            <button onClick={handleLogout} className="login-link" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#666' }}>
+              LOGOUT
+            </button>
+          </div>
+        ) : user ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <Link to="/profile" className="login-link">
+              {user.fullName || "Tài khoản"}
+            </Link>
+            <button onClick={handleLogout} className="login-link" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#666' }}>
+              LOGOUT
+            </button>
+          </div>
         ) : (
           <Link to="/auth-login" className="login-link">
             Đăng Nhập

@@ -22,6 +22,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @SuppressWarnings("null")
+@org.springframework.transaction.annotation.Transactional
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
@@ -76,7 +77,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductResponse> getAllProducts(String keyword, Long categoryId, Pageable pageable) {
+    public Page<ProductResponse> getAllProducts(String keyword, Long categoryId, Boolean featured, Pageable pageable) {
         Specification<Product> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             
@@ -89,6 +90,10 @@ public class ProductServiceImpl implements ProductService {
             
             if (categoryId != null) {
                 predicates.add(cb.equal(root.get("category").get("id"), categoryId));
+            }
+
+            if (featured != null) {
+                predicates.add(cb.equal(root.get("featured"), featured));
             }
             
             return cb.and(predicates.toArray(new Predicate[0]));

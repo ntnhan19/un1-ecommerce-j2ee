@@ -17,9 +17,11 @@ public class ProductMapper {
                 .stock(request.getStock())
                 .description(request.getDescription())
                 .imageUrls(request.getImageUrls())
-                .colors(request.getColors())
+                .colors(request.getColors() != null ? request.getColors().stream()
+                        .map(c -> com.un1.ecommerce.entity.ProductColor.builder().name(c.getName()).hex(c.getHex()).build())
+                        .collect(java.util.stream.Collectors.toList()) : new java.util.ArrayList<>())
                 .sizes(request.getSizes())
-                // Category validation and assignment will be handled in Service layer
+                .featured(request.getFeatured() != null ? request.getFeatured() : false)
                 .build();
     }
 
@@ -35,8 +37,11 @@ public class ProductMapper {
                 .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
                 .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
                 .imageUrls(product.getImageUrls())
-                .colors(product.getColors())
+                .colors(product.getColors() != null ? product.getColors().stream()
+                        .map(c -> com.un1.ecommerce.dto.ColorDto.builder().name(c.getName()).hex(c.getHex()).build())
+                        .collect(java.util.stream.Collectors.toList()) : new java.util.ArrayList<>())
                 .sizes(product.getSizes())
+                .featured(product.getFeatured())
                 .build();
     }
 
@@ -60,12 +65,16 @@ public class ProductMapper {
             product.getImageUrls().addAll(request.getImageUrls());
         }
         if (request.getColors() != null) {
-            product.getColors().clear();
-            product.getColors().addAll(request.getColors());
+            product.setColors(request.getColors().stream()
+                    .map(c -> com.un1.ecommerce.entity.ProductColor.builder().name(c.getName()).hex(c.getHex()).build())
+                    .collect(java.util.stream.Collectors.toList()));
         }
         if (request.getSizes() != null) {
             product.getSizes().clear();
             product.getSizes().addAll(request.getSizes());
+        }
+        if (request.getFeatured() != null) {
+            product.setFeatured(request.getFeatured());
         }
     }
 }

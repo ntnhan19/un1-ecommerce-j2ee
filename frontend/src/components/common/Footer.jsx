@@ -16,7 +16,7 @@ const Footer = () => {
     <footer className="footer">
       <div className="footer-content">
         <div className="footer-image">
-          <img src="/src/assets/images/un1-logo.png" alt="Footer" />
+          <img src="/un1-logo.png" alt="Footer" />
         </div>
         <div className="footer-section about-section">
           <h3 className="footer-title">ABOUT UNI</h3>

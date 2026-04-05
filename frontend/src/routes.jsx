@@ -17,6 +17,7 @@ import ContactUs from './pages/ContactUs';
 
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
+import AdminCollections from './pages/admin/AdminCollections';
 import AdminOrders from './pages/admin/AdminOrders';
 import { SizeProvider } from './context/SizeContext';
 import { CartProvider } from './context/CartContext';
@@ -58,6 +59,7 @@ const AppRoutes = () => {
                   <Route element={<AdminRoute />}>
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/admin/products" element={<AdminProducts />} />
+                    <Route path="/admin/collections" element={<AdminCollections />} />
                     <Route path="/admin/orders" element={<AdminOrders />} />
                   </Route>
 

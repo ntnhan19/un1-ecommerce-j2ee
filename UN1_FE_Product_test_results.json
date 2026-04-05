@@ -1,0 +1,72 @@
+[
+  {
+    "TC_ID": "FE-PROD-GUI-001",
+    "Type": "GUI",
+    "Description": "Product Card hiển thị giá VND và ảnh đầu tiên",
+    "Status": "Passed",
+    "Note": "Đã format currency sang VND và mapping imageUrls[0]"
+  },
+  {
+    "TC_ID": "FE-PROD-GUI-002",
+    "Type": "GUI",
+    "Description": "Skeleton loading khi fetch danh sách",
+    "Status": "Passed",
+    "Note": "Hiển thị ProductCardSkeleton khi loading=true"
+  },
+  {
+    "TC_ID": "FE-PROD-GUI-003",
+    "Type": "GUI",
+    "Description": "Trang detail đúng layout (ảnh, tên, giá, size chart)",
+    "Status": "Passed",
+    "Note": "Layout khớp với yêu cầu Figma, hiển thị gallery và size guide"
+  },
+  {
+    "TC_ID": "FE-PROD-GUI-004",
+    "Type": "GUI",
+    "Description": "Trang 404 khi ID sản phẩm không tồn tại",
+    "Status": "Passed",
+    "Note": "Hiển thị not-found-container thay vì trắng trang"
+  },
+  {
+    "TC_ID": "FE-PROD-F-001",
+    "Type": "Function",
+    "Description": "Fetch data theo Category (Nam/Nữ)",
+    "Status": "Passed",
+    "Note": "Đã map category 'nam' -> ID 1, 'nu' -> ID 2"
+  },
+  {
+    "TC_ID": "FE-PROD-F-002",
+    "Type": "Function",
+    "Description": "Chi tiết sản phẩm đúng data từ API",
+    "Status": "Passed",
+    "Note": "Data khớp với database (description, material, size...)"
+  },
+  {
+    "TC_ID": "FE-PROD-F-003",
+    "Type": "Function",
+    "Description": "Search có debounce 500ms",
+    "Status": "Passed",
+    "Note": "Sử dụng useDebounce hook, API chỉ gọi sau 500ms dừng gõ"
+  },
+  {
+    "TC_ID": "FE-PROD-F-004",
+    "Type": "Function",
+    "Description": "Phân trang ?page=&size=",
+    "Status": "Passed",
+    "Note": "Đã kết nối Pageable của Spring Boot"
+  },
+  {
+    "TC_ID": "FE-PROD-F-005",
+    "Type": "Function",
+    "Description": "Error state khi API fail",
+    "Status": "Passed",
+    "Note": "Hiển thị thông báo lỗi và nút Thử lại"
+  },
+  {
+    "TC_ID": "FE-PROD-NFR-001",
+    "Type": "Non-Function",
+    "Description": "Performance >= 80",
+    "Status": "Pending",
+    "Note": "Cần chạy Lighthouse thực tế để ghi nhận số liệu"
+  }
+]

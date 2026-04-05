@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "../../styles/components/product-filter.css";
-import { getNewCollectionByCategory } from "../../utils/mockProducts";
+
 const ProductFilter = ({ category, selectedFilters, onFilterChange }) => {
   const [expandedSections, setExpandedSections] = useState({
     collection: true,
@@ -24,8 +24,6 @@ const ProductFilter = ({ category, selectedFilters, onFilterChange }) => {
     "QUẦN DA",
   ];
 
-
-
   return (
     <aside className="product-filter">
       {/* Filter Header */}
@@ -47,15 +45,6 @@ const ProductFilter = ({ category, selectedFilters, onFilterChange }) => {
         </div>
         {expandedSections.collection && (
           <div className="filter-options">
-            {/* New Collection Items Grid */}
-            <div className="collection-items-grid">
-              {getNewCollectionByCategory(category).map((item) => (
-                <div key={item.id} className="collection-item">
-                  <img src={item.image} alt={item.name} />
-                </div>
-              ))}
-            </div>
-
             {/* Checkbox Option */}
             <label className="filter-checkbox">
               <input

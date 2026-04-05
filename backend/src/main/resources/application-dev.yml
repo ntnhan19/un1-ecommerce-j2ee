@@ -10,7 +10,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/un1_ecommerce_dev?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8
     username: root
-    password: "Ngochan1801@"
+    password: [PASSWORD]
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
