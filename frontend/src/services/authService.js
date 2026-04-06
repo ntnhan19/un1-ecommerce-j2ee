@@ -14,6 +14,19 @@ const authService = {
     }
   },
 
+  googleLogin: async (idToken) => {
+    try {
+      const response = await axiosInstance.post('/api/auth/google', { idToken });
+      if (response.data && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
+      return response.data;
+    } catch (error) {
+      throw error.response ? error.response.data : new Error('Network error');
+    }
+  },
+
   register: async (userData) => {
     try {
       const response = await axiosInstance.post('/api/auth/register', userData);

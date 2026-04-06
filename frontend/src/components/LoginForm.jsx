@@ -3,13 +3,14 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 const LoginForm = ({ onSwitchToRegister }) => {
   const { register, handleSubmit, setError, formState: { errors } } = useForm();
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login, googleLogin, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   // Redirect when successfully authenticated
@@ -37,6 +38,19 @@ const LoginForm = ({ onSwitchToRegister }) => {
         const message = error.message || (error.error ? error.error : 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
         setLoginError(message);
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setIsLoading(true);
+      await googleLogin(credentialResponse.credential);
+    } catch (error) {
+      console.error('Google Login error:', error);
+      const message = error.message || (error.error ? error.error : 'Đăng nhập Google thất bại.');
+      setLoginError(message);
     } finally {
       setIsLoading(false);
     }
@@ -110,6 +124,21 @@ const LoginForm = ({ onSwitchToRegister }) => {
 
           <div style={{ marginTop: '15px' }}>
             <a href="#" className="link-text">Quên Mật Khẩu?</a>
+          </div>
+
+          <div style={{ margin: '20px 0', textAlign: 'center' }}>
+            <span style={{ backgroundColor: '#fff', padding: '0 10px', color: '#666' }}>Hoặc đăng nhập với</span>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => {
+                console.error('Google Login Failed');
+                setLoginError('Đăng nhập Google thất bại.');
+              }}
+              useOneTap
+            />
           </div>
         </form>
       </div>

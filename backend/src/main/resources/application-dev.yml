@@ -10,7 +10,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/un1_ecommerce_dev?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8
     username: root
-    password: [PASSWORD]
+    password: 0932164734instagram
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -26,3 +26,8 @@ springdoc:
     path: /swagger-ui.html
   api-docs: 
     path: /v3/api-docs
+
+app:
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+    secret: ${GOOGLE_CLIENT_SECRET}
