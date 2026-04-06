@@ -6,6 +6,8 @@ import com.un1.ecommerce.dto.request.RegisterRequest;
 import com.un1.ecommerce.dto.response.ApiResponse;
 import com.un1.ecommerce.dto.response.AuthResponse;
 import com.un1.ecommerce.dto.response.UserResponse;
+import com.un1.ecommerce.dto.request.GoogleOAuthRequest;
+import com.un1.ecommerce.service.GoogleAuthService;
 import com.un1.ecommerce.service.UserService;
 import com.un1.ecommerce.service.impl.AuthenticationService;
 import jakarta.validation.Valid;
@@ -26,6 +28,9 @@ public class AuthController {
     private AuthenticationService authenticationService;
 
     @Autowired
+    private GoogleAuthService googleAuthService;
+
+    @Autowired
     private UserService userService;
 
     /**
@@ -38,6 +43,17 @@ public class AuthController {
         log.info("Register request for email: {}", request.getEmail());
         AuthResponse response = userService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * POST /api/auth/google
+     * Handle Google OAuth Login
+     */
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody GoogleOAuthRequest request) {
+        log.info("Google login request");
+        AuthResponse response = googleAuthService.authenticate(request);
+        return ResponseEntity.ok(response);
     }
 
     /**
