@@ -2,30 +2,26 @@ import React, { useState } from 'react';
 import { useUser } from '../../hooks/useUser';
 import { toast } from 'react-toastify';
 
+const initialFormData = {
+    label: '',
+    fullName: '',
+    phone: '',
+    province: '',
+    district: '',
+    ward: '',
+    detailAddress: '',
+    isDefault: false
+};
+
 const SavedAddresses = () => {
-    const { addresses, addAddress, updateAddress, deleteAddress, setDefaultAddress } = useUser();
+    const { addresses, loading, addAddress, updateAddress, deleteAddress, setDefaultAddress } = useUser();
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [formData, setFormData] = useState({
-        label: '',
-        fullName: '',
-        phone: '',
-        province: '',
-        district: '',
-        ward: '',
-        detailAddress: ''
-    });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formData, setFormData] = useState(initialFormData);
 
     const resetForm = () => {
-        setFormData({
-            label: '',
-            fullName: '',
-            phone: '',
-            province: '',
-            district: '',
-            ward: '',
-            detailAddress: ''
-        });
+        setFormData(initialFormData);
     };
 
     const handleChange = (e) => {
@@ -36,18 +32,26 @@ const SavedAddresses = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (editingId) {
-            updateAddress(editingId, formData);
-            setEditingId(null);
-            toast.success('Đã cập nhật địa chỉ thành công!');
-        } else {
-            addAddress(formData);
-            setIsAdding(false);
-            toast.success('Đã thêm địa chỉ mới thành công!');
+        setIsSubmitting(true);
+
+        try {
+            if (editingId) {
+                await updateAddress(editingId, formData);
+                setEditingId(null);
+                toast.success('Đã cập nhật địa chỉ thành công');
+            } else {
+                await addAddress(formData);
+                setIsAdding(false);
+                toast.success('Đã thêm địa chỉ mới thành công');
+            }
+            resetForm();
+        } catch (error) {
+            toast.error(error?.message || 'Không thể lưu địa chỉ');
+        } finally {
+            setIsSubmitting(false);
         }
-        resetForm();
     };
 
     const handleEdit = (address) => {
@@ -58,7 +62,8 @@ const SavedAddresses = () => {
             province: address.province,
             district: address.district,
             ward: address.ward,
-            detailAddress: address.detailAddress
+            detailAddress: address.detailAddress,
+            isDefault: address.isDefault
         });
         setEditingId(address.id);
         setIsAdding(false);
@@ -70,10 +75,23 @@ const SavedAddresses = () => {
         resetForm();
     };
 
-    const handleDelete = (addressId) => {
+    const handleDelete = async (addressId) => {
         if (window.confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) {
-            deleteAddress(addressId);
-            toast.success('Đã xóa địa chỉ!');
+            try {
+                await deleteAddress(addressId);
+                toast.success('Đã xóa địa chỉ');
+            } catch (error) {
+                toast.error(error?.message || 'Không thể xóa địa chỉ');
+            }
+        }
+    };
+
+    const handleSetDefault = async (addressId) => {
+        try {
+            await setDefaultAddress(addressId);
+            toast.success('Đã đặt làm địa chỉ mặc định');
+        } catch (error) {
+            toast.error(error?.message || 'Không thể cập nhật địa chỉ mặc định');
         }
     };
 
@@ -95,7 +113,7 @@ const SavedAddresses = () => {
             {(isAdding || editingId) && (
                 <form onSubmit={handleSubmit} className="address-form">
                     <div className="form-group">
-                        <label htmlFor="label">Nhãn địa chỉ (Nhà riêng, Văn phòng, ...)</label>
+                        <label htmlFor="label">Nhãn địa chỉ</label>
                         <input
                             type="text"
                             id="label"
@@ -182,19 +200,38 @@ const SavedAddresses = () => {
                         />
                     </div>
 
+                    <div className="form-group">
+                        <label className="checkbox-field">
+                            <input
+                                type="checkbox"
+                                name="isDefault"
+                                checked={formData.isDefault}
+                                onChange={(e) => setFormData(prev => ({
+                                    ...prev,
+                                    isDefault: e.target.checked
+                                }))}
+                            />
+                            <span>Đặt làm địa chỉ mặc định</span>
+                        </label>
+                    </div>
+
                     <div className="form-actions">
                         <button type="button" className="btn-cancel" onClick={handleCancel}>
                             Hủy
                         </button>
-                        <button type="submit" className="btn-save">
-                            {editingId ? 'Cập nhật' : 'Thêm địa chỉ'}
+                        <button type="submit" className="btn-save" disabled={isSubmitting}>
+                            {isSubmitting ? 'Đang lưu...' : editingId ? 'Cập nhật' : 'Thêm địa chỉ'}
                         </button>
                     </div>
                 </form>
             )}
 
             <div className="addresses-list">
-                {addresses.length > 0 ? (
+                {loading && !isAdding && !editingId ? (
+                    <div className="empty-state">
+                        <h3>Đang tải địa chỉ...</h3>
+                    </div>
+                ) : addresses.length > 0 ? (
                     addresses.map(address => (
                         <div key={address.id} className={`address-card ${address.isDefault ? 'default' : ''}`}>
                             {address.isDefault && <span className="default-badge">Mặc định</span>}
@@ -204,11 +241,9 @@ const SavedAddresses = () => {
                                 <div className="address-actions">
                                     {!address.isDefault && (
                                         <button
+                                            type="button"
                                             className="btn-set-default"
-                                            onClick={() => {
-                                                setDefaultAddress(address.id);
-                                                toast.success('Đã đặt làm địa chỉ mặc định!');
-                                            }}
+                                            onClick={() => handleSetDefault(address.id)}
                                             title="Đặt làm mặc định"
                                         >
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -217,6 +252,7 @@ const SavedAddresses = () => {
                                         </button>
                                     )}
                                     <button
+                                        type="button"
                                         className="btn-icon"
                                         onClick={() => handleEdit(address)}
                                         title="Chỉnh sửa"
@@ -227,6 +263,7 @@ const SavedAddresses = () => {
                                         </svg>
                                     </button>
                                     <button
+                                        type="button"
                                         className="btn-icon btn-delete"
                                         onClick={() => handleDelete(address.id)}
                                         title="Xóa"
@@ -251,7 +288,7 @@ const SavedAddresses = () => {
                 ) : (
                     !isAdding && !editingId && (
                         <div className="empty-state">
-                            <div className="empty-icon">📍</div>
+                            <div className="empty-icon">Address</div>
                             <h3>Chưa có địa chỉ nào</h3>
                             <p>Thêm địa chỉ để thanh toán nhanh hơn</p>
                         </div>

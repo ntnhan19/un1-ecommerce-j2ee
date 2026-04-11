@@ -1,6 +1,5 @@
 package com.un1.ecommerce.config;
 
-import com.un1.ecommerce.entity.Role;
 import com.un1.ecommerce.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

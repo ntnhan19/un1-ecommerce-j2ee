@@ -76,15 +76,20 @@ public class GoogleAuthService {
 
             if (userOptional.isPresent()) {
                 user = userOptional.get();
+                if (user.getAuthProvider() == null || user.getAuthProvider().isBlank()) {
+                    user.setAuthProvider(Boolean.TRUE.equals(user.getPasswordLoginEnabled()) ? "LOCAL" : "GOOGLE");
+                }
                 log.info("Existing user logged in via Google: {}", email);
             } else {
                 log.info("Registering new user from Google: {}", email);
                 String uniquePassword = UUID.randomUUID().toString() + UUID.randomUUID().toString();
-                
+
                 user = User.builder()
                         .email(email)
                         .fullName(name)
                         .password(passwordEncoder.encode(uniquePassword))
+                        .authProvider("GOOGLE")
+                        .passwordLoginEnabled(false)
                         .roles(new HashSet<>())
                         .build();
 
@@ -121,6 +126,9 @@ public class GoogleAuthService {
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
+                .phone(user.getPhone())
+                .authProvider(resolveAuthProvider(user))
+                .passwordLoginEnabled(isPasswordLoginEnabled(user))
                 .roles(roleNames)
                 .createdAt(user.getCreatedAt())
                 .build();
@@ -130,5 +138,15 @@ public class GoogleAuthService {
                 .type("Bearer")
                 .user(userResponse)
                 .build();
+    }
+
+    private boolean isPasswordLoginEnabled(User user) {
+        return user.getPasswordLoginEnabled() == null || Boolean.TRUE.equals(user.getPasswordLoginEnabled());
+    }
+
+    private String resolveAuthProvider(User user) {
+        return user.getAuthProvider() == null || user.getAuthProvider().isBlank()
+                ? "LOCAL"
+                : user.getAuthProvider();
     }
 }

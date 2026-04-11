@@ -10,7 +10,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/un1_ecommerce_dev?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8
     username: root
-    password: 0932164734instagram
+    password: password
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -29,5 +29,5 @@ springdoc:
 
 app:
   google:
-    client-id: ${GOOGLE_CLIENT_ID}
-    secret: ${GOOGLE_CLIENT_SECRET}
+    client-id: [GOOGLE_CLIENT_ID]
+    secret: [GOOGLE_CLIENT_SECRET]

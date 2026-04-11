@@ -101,4 +101,14 @@ public class GlobalExceptionHandler {
                                 .build();
                 return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
         }
+
+        @ExceptionHandler(BadRequestException.class)
+        public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex) {
+                ErrorResponse errorResponse = ErrorResponse.builder()
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message(ex.getMessage())
+                                .timestamp(LocalDateTime.now())
+                                .build();
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
 }

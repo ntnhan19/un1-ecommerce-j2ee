@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useOrder } from '../hooks/useOrder';
 import Header from '../components/common/Header';
 import PersonalInfo from '../components/profile/PersonalInfo';
 import SavedAddresses from '../components/profile/SavedAddresses';
@@ -17,7 +16,6 @@ const Profile = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('personal');
 
-    // Show loading spinner if auth state is being determined
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen">
@@ -26,7 +24,6 @@ const Profile = () => {
         );
     }
 
-    // Don't render if no user (this is a fallback, PrivateRoute should handle this)
     if (!user) {
         return null;
     }
@@ -46,7 +43,6 @@ const Profile = () => {
             <Header />
 
             <div className="profile-container">
-                {/* Profile Header */}
                 <div className="profile-header">
                     <div className="profile-avatar">
                         <span>{user.fullName?.charAt(0)}</span>
@@ -68,7 +64,6 @@ const Profile = () => {
                     </button>
                 </div>
 
-                {/* Tab Navigation */}
                 <div className="profile-tabs">
                     {tabs.map(tab => (
                         <button
@@ -82,7 +77,6 @@ const Profile = () => {
                     ))}
                 </div>
 
-                {/* Tab Content */}
                 <div className="profile-content">
                     {activeTab === 'personal' && <PersonalInfo user={user} />}
                     {activeTab === 'addresses' && <SavedAddresses />}
@@ -98,4 +92,3 @@ const Profile = () => {
 };
 
 export default Profile;
-

@@ -1,10 +1,8 @@
 package com.un1.ecommerce.service.impl;
 
 import com.un1.ecommerce.dto.request.LoginRequest;
-import com.un1.ecommerce.dto.request.RegisterRequest;
 import com.un1.ecommerce.dto.response.AuthResponse;
 import com.un1.ecommerce.dto.response.UserResponse;
-import com.un1.ecommerce.entity.Cart;
 import com.un1.ecommerce.entity.Role;
 import com.un1.ecommerce.entity.User;
 import com.un1.ecommerce.exception.ResourceNotFoundException;
@@ -18,9 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,11 +41,13 @@ public class AuthenticationService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // Registration logic moved to UserServiceImpl using UserService interface
-
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Email hoặc mật khẩu không đúng"));
+
+        if (!isPasswordLoginEnabled(user)) {
+            throw new UnauthorizedException("Tài khoản này đang đăng nhập bằng Google. Hãy thiết lập mật khẩu trước trong trang hồ sơ.");
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new UnauthorizedException("Email hoặc mật khẩu không đúng");
@@ -57,18 +56,11 @@ public class AuthenticationService {
         return createAuthResponse(user);
     }
 
-    // --- HÀM HELPER ĐỂ TỐI ƯU CODE ---
-
-    private Role getOrCreateRole(String roleName) {
-        return roleRepository.findByName(roleName)
-                .orElseGet(() -> roleRepository.save(Role.builder().name(roleName).build()));
-    }
-
     private AuthResponse createAuthResponse(User user) {
         String token = jwtUtil.generateToken(user.getEmail());
         return AuthResponse.builder()
                 .token(token)
-                .type("Bearer") // Sửa lỗi "type: null" trên Postman lúc nãy ở đây!
+                .type("Bearer")
                 .user(mapToUserResponse(user))
                 .build();
     }
@@ -82,14 +74,14 @@ public class AuthenticationService {
                 .id(user.getId())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
+                .phone(user.getPhone())
+                .authProvider(resolveAuthProvider(user))
+                .passwordLoginEnabled(isPasswordLoginEnabled(user))
                 .roles(roleNames)
                 .createdAt(user.getCreatedAt())
                 .build();
     }
 
-    /**
-     * Check if user is admin
-     */
     public boolean isAdmin(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng"));
@@ -110,4 +102,13 @@ public class AuthenticationService {
         return mapToUserResponse(user);
     }
 
+    private boolean isPasswordLoginEnabled(User user) {
+        return user.getPasswordLoginEnabled() == null || Boolean.TRUE.equals(user.getPasswordLoginEnabled());
+    }
+
+    private String resolveAuthProvider(User user) {
+        return user.getAuthProvider() == null || user.getAuthProvider().isBlank()
+                ? "LOCAL"
+                : user.getAuthProvider();
+    }
 }

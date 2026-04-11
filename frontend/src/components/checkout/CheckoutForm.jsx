@@ -27,7 +27,7 @@ const CheckoutForm = ({ formData, setFormData, errors }) => {
       firstName: '',
       lastName: '',
       email: user?.email || '',
-      phone: '',
+      phone: user?.phone || '',
       province: '',
       district: '',
       ward: '',

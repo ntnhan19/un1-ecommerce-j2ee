@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import authService from '../services/authService';
+import profileService from '../services/profileService';
 
 const AuthContext = createContext();
 
@@ -17,13 +18,29 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const savedUser = authService.getCurrentUser();
-        const savedToken = authService.getToken();
-        if (savedUser && savedToken) {
-            setUser(savedUser);
-            setToken(savedToken);
-        }
-        setLoading(false);
+        const initializeAuth = async () => {
+            const savedUser = authService.getCurrentUser();
+            const savedToken = authService.getToken();
+
+            if (savedUser && savedToken) {
+                setUser(savedUser);
+                setToken(savedToken);
+
+                try {
+                    const profile = await profileService.getProfile();
+                    authService.setCurrentUser(profile);
+                    setUser(profile);
+                } catch (error) {
+                    authService.logout();
+                    setUser(null);
+                    setToken(null);
+                }
+            }
+
+            setLoading(false);
+        };
+
+        initializeAuth();
     }, []);
 
     const login = async (email, password) => {
@@ -44,6 +61,18 @@ export const AuthProvider = ({ children }) => {
         return await authService.register(userData);
     };
 
+    const refreshUser = async () => {
+        const profile = await profileService.getProfile();
+        authService.setCurrentUser(profile);
+        setUser(profile);
+        return profile;
+    };
+
+    const updateUser = (nextUser) => {
+        authService.setCurrentUser(nextUser);
+        setUser(nextUser);
+    };
+
     const logout = () => {
         authService.logout();
         setUser(null);
@@ -58,6 +87,8 @@ export const AuthProvider = ({ children }) => {
             login,
             googleLogin,
             register,
+            refreshUser,
+            updateUser,
             logout,
             isAuthenticated: !!token
         }}>
