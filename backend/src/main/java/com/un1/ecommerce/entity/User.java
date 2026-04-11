@@ -10,6 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
@@ -40,6 +41,14 @@ public class User {
     @Column(nullable = false)
     private String fullName;
 
+    @Column(length = 20)
+    private String phone;
+
+    @Column(length = 20)
+    private String authProvider;
+
+    private Boolean passwordLoginEnabled;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -55,4 +64,9 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Cart cart;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    @JsonIgnore
+    private Set<ShippingAddress> shippingAddresses = new LinkedHashSet<>();
 }

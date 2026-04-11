@@ -1,70 +1,81 @@
-// src/context/UserContext.jsx
-import { createContext, useState, useEffect } from "react";
+import { createContext, useEffect, useState } from 'react';
+import profileService from '../services/profileService';
+import { useAuth } from './AuthContext';
 
 export const UserContext = createContext(null);
 
 export const UserProvider = ({ children }) => {
+    const { isAuthenticated } = useAuth();
     const [addresses, setAddresses] = useState([]);
+    const [loading, setLoading] = useState(false);
 
-    // Load addresses from localStorage on mount
     useEffect(() => {
-        const savedAddresses = localStorage.getItem('addresses');
-        if (savedAddresses) {
+        const fetchAddresses = async () => {
+            if (!isAuthenticated) {
+                setAddresses([]);
+                return;
+            }
+
+            setLoading(true);
             try {
-                setAddresses(JSON.parse(savedAddresses));
+                const data = await profileService.getAddresses();
+                setAddresses(Array.isArray(data) ? data : []);
             } catch (error) {
                 console.error('Error loading addresses:', error);
+                setAddresses([]);
+            } finally {
+                setLoading(false);
             }
-        }
-    }, []);
-
-    // Save addresses to localStorage whenever they change
-    useEffect(() => {
-        if (addresses.length >= 0) {
-            localStorage.setItem('addresses', JSON.stringify(addresses));
-        }
-    }, [addresses]);
-
-    // Add new address
-    const addAddress = (addressData) => {
-        const newAddress = {
-            id: Date.now().toString(),
-            ...addressData,
-            createdAt: new Date().toISOString()
         };
-        setAddresses(prevAddresses => [...prevAddresses, newAddress]);
+
+        fetchAddresses();
+    }, [isAuthenticated]);
+
+    const refreshAddresses = async () => {
+        if (!isAuthenticated) {
+            setAddresses([]);
+            return [];
+        }
+
+        setLoading(true);
+        try {
+            const data = await profileService.getAddresses();
+            const nextAddresses = Array.isArray(data) ? data : [];
+            setAddresses(nextAddresses);
+            return nextAddresses;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const addAddress = async (addressData) => {
+        const newAddress = await profileService.createAddress(addressData);
+        await refreshAddresses();
         return newAddress;
     };
 
-    // Update existing address
-    const updateAddress = (addressId, addressData) => {
-        setAddresses(prevAddresses =>
-            prevAddresses.map(addr =>
-                addr.id === addressId ? { ...addr, ...addressData } : addr
-            )
-        );
+    const updateAddress = async (addressId, addressData) => {
+        const updatedAddress = await profileService.updateAddress(addressId, addressData);
+        await refreshAddresses();
+        return updatedAddress;
     };
 
-    // Delete address
-    const deleteAddress = (addressId) => {
-        setAddresses(prevAddresses =>
-            prevAddresses.filter(addr => addr.id !== addressId)
-        );
+    const deleteAddress = async (addressId) => {
+        await profileService.deleteAddress(addressId);
+        await refreshAddresses();
     };
 
-    // Set default address
-    const setDefaultAddress = (addressId) => {
-        setAddresses(prevAddresses =>
-            prevAddresses.map(addr => ({
-                ...addr,
-                isDefault: addr.id === addressId
-            }))
-        );
+    const setDefaultAddress = async (addressId) => {
+        const updatedAddress = await profileService.setDefaultAddress(addressId);
+        await refreshAddresses();
+        return updatedAddress;
     };
 
     return (
         <UserContext.Provider value={{
             addresses,
+            loading,
+            refreshAddresses,
             addAddress,
             updateAddress,
             deleteAddress,

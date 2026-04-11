@@ -1,13 +1,26 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+import { useAuth } from '../../context/AuthContext';
+import profileService from '../../services/profileService';
 
 const PersonalInfo = ({ user: initialUser }) => {
+    const { updateUser } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
-        firstName: initialUser?.fullName?.split(' ').pop() || '',
-        lastName: initialUser?.fullName?.split(' ').slice(0, -1).join(' ') || '',
+        fullName: initialUser?.fullName || '',
         email: initialUser?.email || '',
         phone: initialUser?.phone || ''
     });
+
+    useEffect(() => {
+        setFormData({
+            fullName: initialUser?.fullName || '',
+            email: initialUser?.email || '',
+            phone: initialUser?.phone || ''
+        });
+    }, [initialUser]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -15,21 +28,60 @@ const PersonalInfo = ({ user: initialUser }) => {
             ...prev,
             [name]: value
         }));
+
+        if (errors[name]) {
+            setErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
     };
 
-    const handleSubmit = (e) => {
+    const validateForm = () => {
+        const nextErrors = {};
+
+        if (!formData.fullName.trim()) {
+            nextErrors.fullName = 'Vui lòng nhập họ và tên';
+        }
+
+        if (formData.phone && !/^[0-9+\s-]{8,20}$/.test(formData.phone.trim())) {
+            nextErrors.phone = 'Số điện thoại không hợp lệ';
+        }
+
+        setErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Update profile not implemented in this version:', formData);
-        setIsEditing(false);
+
+        if (!validateForm()) {
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const updatedUser = await profileService.updateProfile({
+                fullName: formData.fullName.trim(),
+                phone: formData.phone.trim()
+            });
+            updateUser(updatedUser);
+            setIsEditing(false);
+            toast.success('Đã cập nhật thông tin cá nhân');
+        } catch (error) {
+            toast.error(error?.message || 'Không thể cập nhật thông tin');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleCancel = () => {
         setFormData({
-            firstName: initialUser?.firstName || '',
-            lastName: initialUser?.lastName || '',
+            fullName: initialUser?.fullName || '',
             email: initialUser?.email || '',
             phone: initialUser?.phone || ''
         });
+        setErrors({});
         setIsEditing(false);
     };
 
@@ -50,29 +102,17 @@ const PersonalInfo = ({ user: initialUser }) => {
 
             {isEditing ? (
                 <form onSubmit={handleSubmit} className="edit-form">
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label htmlFor="lastName">Họ</label>
-                            <input
-                                type="text"
-                                id="lastName"
-                                name="lastName"
-                                value={formData.lastName}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="firstName">Tên</label>
-                            <input
-                                type="text"
-                                id="firstName"
-                                name="firstName"
-                                value={formData.firstName}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
+                    <div className="form-group">
+                        <label htmlFor="fullName">Họ và tên</label>
+                        <input
+                            type="text"
+                            id="fullName"
+                            name="fullName"
+                            value={formData.fullName}
+                            onChange={handleChange}
+                            required
+                        />
+                        {errors.fullName && <span className="error-text">{errors.fullName}</span>}
                     </div>
 
                     <div className="form-group">
@@ -82,9 +122,9 @@ const PersonalInfo = ({ user: initialUser }) => {
                             id="email"
                             name="email"
                             value={formData.email}
-                            onChange={handleChange}
-                            required
+                            disabled
                         />
+                        <span className="helper-text">Email đang được dùng làm tài khoản đăng nhập</span>
                     </div>
 
                     <div className="form-group">
@@ -95,16 +135,17 @@ const PersonalInfo = ({ user: initialUser }) => {
                             name="phone"
                             value={formData.phone}
                             onChange={handleChange}
-                            required
+                            placeholder="Ví dụ: 0912345678"
                         />
+                        {errors.phone && <span className="error-text">{errors.phone}</span>}
                     </div>
 
                     <div className="form-actions">
                         <button type="button" className="btn-cancel" onClick={handleCancel}>
                             Hủy
                         </button>
-                        <button type="submit" className="btn-save">
-                            Lưu thay đổi
+                        <button type="submit" className="btn-save" disabled={isSaving}>
+                            {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
                         </button>
                     </div>
                 </form>
@@ -112,7 +153,7 @@ const PersonalInfo = ({ user: initialUser }) => {
                 <div className="info-display">
                     <div className="info-item">
                         <span className="info-label">Họ và tên:</span>
-                        <span className="info-value">{formData.lastName} {formData.firstName}</span>
+                        <span className="info-value">{formData.fullName || 'Chưa cập nhật'}</span>
                     </div>
                     <div className="info-item">
                         <span className="info-label">Email:</span>
@@ -120,7 +161,17 @@ const PersonalInfo = ({ user: initialUser }) => {
                     </div>
                     <div className="info-item">
                         <span className="info-label">Số điện thoại:</span>
-                        <span className="info-value">{formData.phone}</span>
+                        <span className="info-value">{formData.phone || 'Chưa cập nhật'}</span>
+                    </div>
+                    <div className="info-item">
+                        <span className="info-label">Phương thức đăng nhập:</span>
+                        <span className="info-value">
+                            {initialUser?.authProvider === 'GOOGLE'
+                                ? initialUser?.passwordLoginEnabled
+                                    ? 'Google và mật khẩu'
+                                    : 'Google'
+                                : 'Email và mật khẩu'}
+                        </span>
                     </div>
                 </div>
             )}
