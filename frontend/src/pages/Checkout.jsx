@@ -1,19 +1,29 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '../hooks/useCart';
+import { useOrder } from '../hooks/useOrder';
+import Header from '../components/common/Header';
 import CheckoutForm from '../components/checkout/CheckoutForm';
 import ShippingMethod from '../components/checkout/ShippingMethod';
 import PaymentMethod from '../components/checkout/PaymentMethod';
 import OrderSummary from '../components/checkout/OrderSummary';
-import './Checkout.css';
+import '../styles/components/Checkout.css';
 
 const Checkout = () => {
+  const navigate = useNavigate();
+  const { cartItems, total, parsePrice, clearCart } = useCart();
+  const { addOrder } = useOrder();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    email: '',
+    phone: '',
     province: '',
     district: '',
     ward: '',
-    detailAddress: ''
+    detailAddress: '',
+    addressId: null
   });
   const [shippingMethod, setShippingMethod] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
@@ -43,6 +53,16 @@ const Checkout = () => {
       }
       if (!formData.lastName?.trim()) {
         newErrors.lastName = 'Vui lòng nhập họ';
+      }
+      if (!formData.email?.trim()) {
+        newErrors.email = 'Vui lòng nhập email';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = 'Email không hợp lệ';
+      }
+      if (!formData.phone?.trim()) {
+        newErrors.phone = 'Vui lòng nhập số điện thoại';
+      } else if (!/^[0-9]{10,11}$/.test(formData.phone.replace(/\s/g, ''))) {
+        newErrors.phone = 'Số điện thoại không hợp lệ';
       }
       if (!formData.province?.trim()) {
         newErrors.province = 'Vui lòng nhập tỉnh';
@@ -85,17 +105,35 @@ const Checkout = () => {
 
   const handleSubmit = async () => {
     if (validateStep(currentStep)) {
+      // Prepare order items from cart
+      const orderItems = cartItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: parsePrice(item.price),
+        quantity: item.quantity,
+        image: item.image,
+        color: item.color || 'Đen',
+        size: item.size || 'M'
+      }));
+
       const orderData = {
         shippingInfo: formData,
         shippingMethod,
         paymentMethod,
-        shippingCost: getShippingCost()
+        shippingCost: getShippingCost(),
+        totalAmount: total + getShippingCost(),
+        items: orderItems
       };
 
-      console.log('Order submitted:', orderData);
-      
-      // Redirect to order confirmation page
-      window.location.href = '/order-confirm';
+      // Add order to context
+      const newOrder = addOrder(orderData);
+      console.log('Order created:', newOrder);
+
+      // Clear cart after successful order
+      clearCart();
+
+      // Redirect to order success page
+      navigate(`/order-success/${newOrder.id}`);
     }
   };
 
@@ -137,7 +175,7 @@ const Checkout = () => {
         return (
           <div className="step-content review-step">
             <h2 className="section-title">XÁC NHẬN ĐỐN HÀNG</h2>
-            
+
             <div className="review-section">
               <h3>Thông tin giao hàng</h3>
               <div className="review-info">
@@ -145,8 +183,8 @@ const Checkout = () => {
                 <p><strong>Địa chỉ:</strong> {formData.detailAddress}, {formData.ward}, {formData.district}, {formData.province}</p>
                 <p><strong>Phương thức vận chuyển:</strong> {
                   shippingMethod === 'standard' ? 'Giao hàng tiêu chuẩn (3-5 ngày)' :
-                  shippingMethod === 'express' ? 'Giao hàng nhanh (1-2 ngày)' :
-                  'Giao hàng trong ngày'
+                    shippingMethod === 'express' ? 'Giao hàng nhanh (1-2 ngày)' :
+                      'Giao hàng trong ngày'
                 }</p>
               </div>
             </div>
@@ -156,9 +194,9 @@ const Checkout = () => {
               <div className="review-info">
                 <p><strong>{
                   paymentMethod === 'cod' ? 'COD - Thanh toán khi nhận hàng' :
-                  paymentMethod === 'vnpay' ? 'VN PAY - Thanh toán qua VNPay' :
-                  paymentMethod === 'momo' ? 'Momo - Thanh toán qua ví Momo' :
-                  'Chuyển khoản ngân hàng'
+                    paymentMethod === 'vnpay' ? 'VN PAY - Thanh toán qua VNPay' :
+                      paymentMethod === 'momo' ? 'Momo - Thanh toán qua ví Momo' :
+                        'Chuyển khoản ngân hàng'
                 }</strong></p>
               </div>
             </div>
@@ -171,22 +209,7 @@ const Checkout = () => {
 
   return (
     <div className="checkout-container">
-      <header className="checkout-header">
-        <nav className="header-nav">
-          <div className="nav-left">
-            <a href="/">SHOP</a>
-            <a href="/men">NAM</a>
-            <a href="/women">NỮ</a>
-            <a href="/sale">SALE</a>
-          </div>
-          <div className="logo">un1</div>
-          <div className="nav-right">
-            <a href="/cart">🛒</a>
-            <a href="/wishlist">♡</a>
-            <a href="/login">Đăng Nhập</a>
-          </div>
-        </nav>
-      </header>
+      <Header />
 
       <div className="checkout-title-bar">
         <h1>Checkout & Payment</h1>

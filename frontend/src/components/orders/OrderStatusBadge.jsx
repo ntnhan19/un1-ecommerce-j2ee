@@ -2,13 +2,13 @@
 import { OrderStatus } from '../../pages/orders/orderTypes';
 
 const OrderStatusBadge = ({ status }) => {
-  const getStatusStyles = () => {
+  const getStatusClass = () => {
     switch (status) {
-      case OrderStatus.PENDING: return 'bg-amber-100 text-amber-700 border-amber-200';
-      case OrderStatus.SHIPPING: return 'bg-blue-100 text-blue-700 border-blue-200';
-      case OrderStatus.COMPLETED: return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case OrderStatus.CANCELLED: return 'bg-rose-100 text-rose-700 border-rose-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      case OrderStatus.PENDING: return 'status-pending';
+      case OrderStatus.SHIPPING: return 'status-shipping';
+      case OrderStatus.COMPLETED: return 'status-completed';
+      case OrderStatus.CANCELLED: return 'status-cancelled';
+      default: return 'status-default';
     }
   };
 
@@ -23,7 +23,7 @@ const OrderStatusBadge = ({ status }) => {
   };
 
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyles()}`}>
+    <span className={`order-status-badge ${getStatusClass()}`}>
       {getStatusText()}
     </span>
   );

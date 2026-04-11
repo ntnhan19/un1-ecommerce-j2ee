@@ -1,34 +1,61 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import Header from "../components/common/Header";
 import Footer from "../components/common/Footer";
 import ProductFilter from "../components/product/ProductFilter";
 import ProductGrid from "../components/product/ProductGrid";
-import { getProductsByCategory } from "../utils/mockProducts";
+import productService from "../services/productService";
 import "../styles/pages/products.css";
 
 const Products = () => {
   const { category } = useParams();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [totalPages, setTotalPages] = useState(0);
+
+  const page = parseInt(searchParams.get("page") || "0");
+  const size = parseInt(searchParams.get("size") || "10");
+
   const [selectedFilters, setSelectedFilters] = useState({
     collection: null,
     seller: null,
     type: null,
   });
 
-  // Get products from mock data based on category
-  const products = getProductsByCategory(category);
-
-  const categoryName =
-    category === "nam" ? "" : category === "nu" ? "" : "SẢN PHẨM";
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      // TODO: Implement search functionality
-      console.log("Search for:", searchQuery);
-    }
+  // Map category name to ID
+  // TODO: Fetch this from an actual Category API later
+  const getCategoryId = (cat) => {
+    if (cat === "nam") return 1;
+    if (cat === "nu") return 2;
+    return null;
   };
+
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const categoryId = getCategoryId(category);
+      const data = await productService.getProducts({
+        category: categoryId,
+        page,
+        size,
+        sort: "id,desc"
+      });
+      setProducts(data.content || []);
+      setTotalPages(data.totalPages || 0);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setError("Không thể tải danh sách sản phẩm. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
+  }, [category, page, size]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const handleFilterChange = (filterType, value) => {
     setSelectedFilters((prev) => ({
@@ -37,11 +64,19 @@ const Products = () => {
     }));
   };
 
+  const handlePageChange = (newPage) => {
+    searchParams.set("page", newPage);
+    setSearchParams(searchParams);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const categoryName =
+    category === "nam" ? "NAM" : category === "nu" ? "NỮ" : "SẢN PHẨM";
+
   return (
     <div className="products-page">
       <Header />
       <main className="products-main">
-        {/* Hero/Cover Section */}
         <div className="products-cover">
           <img
             src={
@@ -55,54 +90,63 @@ const Products = () => {
           <div className="cover-overlay">
             <h1 className="cover-title">{categoryName}</h1>
           </div>
-
-          {/* Search Bar - Positioned absolutely in center */}
-          <form className="search-bar-product" onSubmit={handleSearch}>
-            <input
-              type="text"
-              className="search-input-product"
-              placeholder="Tìm kiếm..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <button type="submit" className="search-btn-product">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-              </svg>
-            </button>
-          </form>
-
-          {/* Logo - Positioned absolutely on right */}
           <div className="cover-logo">
             <img
-              src="/src/assets/images/un1-logo.png"
+              src="/un1-logo.png"
               alt="UN1"
               className="cover-logo-image"
             />
           </div>
         </div>
 
-        {/* Products Section */}
         <div className="products-container">
-          {/* Sidebar Filter */}
           <ProductFilter
             category={category}
             selectedFilters={selectedFilters}
             onFilterChange={handleFilterChange}
           />
+          <div className="product-list-content" style={{ flex: 1 }}>
+            {error ? (
+              <div className="error-state">
+                <p>{error}</p>
+                <button onClick={fetchProducts}>Thử lại</button>
+              </div>
+            ) : (
+              <>
+                <ProductGrid
+                  products={products}
+                  category={category}
+                  loading={loading}
+                />
 
-          {/* Product Grid */}
-          <ProductGrid products={products} category={category} />
+                {totalPages > 1 && (
+                  <div className="pagination">
+                    <button
+                      disabled={page === 0}
+                      onClick={() => handlePageChange(page - 1)}
+                    >
+                      Trước
+                    </button>
+                    {[...Array(totalPages)].map((_, i) => (
+                      <button
+                        key={i}
+                        className={page === i ? "active" : ""}
+                        onClick={() => handlePageChange(i)}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                    <button
+                      disabled={page === totalPages - 1}
+                      onClick={() => handlePageChange(page + 1)}
+                    >
+                      Sau
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </main>
       <Footer />

@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../pages/Checkout.css';
+import '../../styles/components/Checkout.css';
 
 const ShippingMethod = ({ selectedMethod, setSelectedMethod, errors }) => {
   const shippingMethods = [
@@ -36,8 +36,8 @@ const ShippingMethod = ({ selectedMethod, setSelectedMethod, errors }) => {
       <h3>Phương thức vận chuyển</h3>
       <div className="shipping-options">
         {shippingMethods.map((method) => (
-          <div 
-            key={method.id} 
+          <div
+            key={method.id}
             className={`shipping-option ${selectedMethod === method.id ? 'selected' : ''}`}
             onClick={() => handleMethodChange(method.id)}
           >

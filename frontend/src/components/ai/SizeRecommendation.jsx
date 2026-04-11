@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSize } from '../../context/SizeContext';
+import BodyVisualization from './BodyVisualization';
 
 const SizeRecommendation = () => {
     const { recommendation, measurements, updateMeasurements } = useSize();
@@ -57,6 +58,9 @@ const SizeRecommendation = () => {
                     })}
                 </div>
             </div>
+
+            {/* Body Visualization */}
+            <BodyVisualization />
 
             {/* Fit Details */}
             <div className="space-y-8 pt-4">

@@ -1,8 +1,8 @@
 import React from 'react';
 import StoryCard from '../components/about/StoryCard';
-import './AboutUs.css';
+import '../styles/components/AboutUs.css';
 // QUAN TRỌNG: Gọi file Header và Footer vào đây
-import Header from '../components/common/Header'; 
+import Header from '../components/common/Header';
 import Footer from '../components/common/Footer';
 
 const AboutUs = () => {
@@ -17,12 +17,12 @@ const AboutUs = () => {
     <div className="page-wrapper">
       {/* Lắp Header lên đầu trang */}
       <Header />
-      
+
       <div className="about-us-container">
         <h1 className="page-title">ABOUT US</h1>
         <div className="stories-grid">
           {stories.map((story) => (
-            <StoryCard 
+            <StoryCard
               key={story.id}
               title={story.title}
               description={story.description}

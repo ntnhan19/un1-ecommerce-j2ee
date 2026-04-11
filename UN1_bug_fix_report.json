@@ -1,0 +1,48 @@
+{
+    "project": "un1-ecommerce-shop",
+    "status": "All reported bugs fixed",
+    "issues": [
+        {
+            "id": "SEC-001",
+            "component": "LoginForm.jsx",
+            "type": "Security",
+            "description": "Removed console.log containing user passwords and JWT tokens",
+            "status": "FIXED"
+        },
+        {
+            "id": "LOGIC-001",
+            "component": "RegisterForm.jsx",
+            "type": "Logic",
+            "description": "Filtered out confirmPassword and policy fields before sending to backend",
+            "status": "FIXED"
+        },
+        {
+            "id": "VALIDATION-001",
+            "component": "RegisterForm.jsx",
+            "type": "Improvement",
+            "description": "Added minLength: 6 validation to password field on frontend",
+            "status": "FIXED"
+        },
+        {
+            "id": "CONFLICT-001",
+            "component": "UserContext.jsx",
+            "type": "Conflict",
+            "description": "Removed duplicated user state/auth methods; unified auth source from AuthContext",
+            "status": "FIXED"
+        },
+        {
+            "id": "SEC-002",
+            "component": "routes.jsx",
+            "type": "Security",
+            "description": "Implemented AdminRoute to restrict admin paths based on user role (ADMIN)",
+            "status": "FIXED"
+        },
+        {
+            "id": "RUNTIME-001",
+            "component": "WishlistContext.jsx",
+            "type": "Runtime",
+            "description": "Added try/catch to JSON.parse(localStorage) to prevent white screen on data corruption",
+            "status": "FIXED"
+        }
+    ]
+}

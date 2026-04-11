@@ -1,0 +1,166 @@
+/* SizeRecommendation - CSS Only Version */
+
+.size-recommendation-container {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.size-recommendation-stats {
+    padding: 0.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.size-recommendation-stats-text {
+    font-size: 0.875rem;
+    font-weight: 300;
+    color: #111827;
+}
+
+.size-recommendation-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.size-recommendation-fit-pref {
+    font-weight: 400;
+}
+
+.size-recommendation-change-btn {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    border: 1px solid #d1d5db;
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.size-recommendation-change-btn:hover {
+    background: #f9fafb;
+}
+
+.size-recommendation-main {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.size-recommendation-title {
+    font-weight: 700;
+    font-size: 1.125rem;
+    margin: 0;
+}
+
+.size-recommendation-sizes {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 0.5rem;
+    position: relative;
+}
+
+.size-recommendation-size-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.size-recommendation-size-label {
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.size-recommendation-size-text {
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+    font-weight: 300;
+    color: #9ca3af;
+}
+
+.size-recommendation-size-item:hover .size-recommendation-size-text {
+    color: #6b7280;
+}
+
+.size-recommendation-size-item.recommended .size-recommendation-size-text {
+    font-weight: 900;
+    transform: scale(1.1);
+    color: #000000;
+}
+
+.size-recommendation-size-indicator {
+    position: absolute;
+    bottom: -2px;
+    width: 3rem;
+    height: 3px;
+    background: #111827;
+    border-radius: 9999px;
+}
+
+.size-recommendation-fit-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding-top: 1rem;
+}
+
+.size-recommendation-fit-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.size-recommendation-fit-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 300;
+}
+
+.size-recommendation-fit-value {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    border-radius: 9999px;
+    padding: 0.625rem 0;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+.size-recommendation-summary {
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.size-recommendation-summary-label {
+    font-size: 1.125rem;
+    font-weight: 300;
+}
+
+.size-recommendation-summary-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+}

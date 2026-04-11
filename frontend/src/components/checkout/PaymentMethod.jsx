@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../pages/Checkout.css';
+import '../../styles/components/Checkout.css';
 
 const PaymentMethod = ({ selectedMethod, setSelectedMethod, errors }) => {
   const paymentMethods = [
