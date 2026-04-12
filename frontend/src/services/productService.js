@@ -3,12 +3,24 @@ import axiosInstance from '../api/axiosInstance';
 const productService = {
   getProducts: async (params = {}) => {
     try {
-      // Mapping categories 'nam' and 'nu' to IDs if needed, but for now we'll pass them directly
-      // Or assuming category names map directly to the backend category search
-      const response = await axiosInstance.get('/api/products', { params });
+      // Lọc bỏ null/undefined để không gửi param thừa lên server
+      const cleanParams = Object.fromEntries(
+        Object.entries(params).filter(([_, v]) => v != null)
+      );
+      const response = await axiosInstance.get('/api/products', { params: cleanParams });
       return response.data;
     } catch (error) {
       throw error.response?.data || new Error('Failed to fetch products');
+    }
+  },
+
+  // Thêm mới
+  getCategories: async () => {
+    try {
+      const response = await axiosInstance.get('/api/categories');
+      return response.data; // List<CategoryResponse>
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to fetch categories');
     }
   },
 
@@ -23,8 +35,9 @@ const productService = {
 
   searchProducts: async (keyword, page = 0, size = 10) => {
     try {
-      const params = { keyword, page, size };
-      const response = await axiosInstance.get('/api/products', { params });
+      const response = await axiosInstance.get('/api/products', {
+        params: { keyword, page, size }
+      });
       return response.data;
     } catch (error) {
       throw error.response?.data || new Error('Search failed');
@@ -54,6 +67,15 @@ const productService = {
       await axiosInstance.delete(`/api/products/${id}`);
     } catch (error) {
       throw error.response?.data || new Error('Failed to delete product');
+    }
+  },
+
+  recommendSize: async (payload) => {
+    try {
+      const response = await axiosInstance.post('/api/size-recommendations', payload);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || new Error('Failed to get size recommendation');
     }
   }
 };

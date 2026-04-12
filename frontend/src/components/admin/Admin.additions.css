@@ -1,0 +1,430 @@
+/* ─────────────────────────────────────────────────────
+   Admin.additions.css
+   Paste these into your Admin.css, or import separately.
+   These complement the existing Admin.css styles.
+   ───────────────────────────────────────────────────── */
+
+/* Generic admin select (filter dropdowns in toolbar) */
+.admin-select {
+    padding: 0.45rem 0.85rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #444;
+    background: #fff;
+    cursor: pointer;
+    font-family: inherit;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    padding-right: 2rem;
+    transition: border-color 0.15s;
+}
+
+.admin-select:focus {
+    outline: none;
+    border-color: #333;
+}
+
+/* Category badge in product table */
+.admin-badge-category {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    background: #f4f4f4;
+    border: 1px solid #e8e8e8;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #555;
+    letter-spacing: 0.02em;
+}
+
+/* Card subtitle / count */
+.admin-card-sub {
+    font-size: 0.78rem;
+    color: #aaa;
+    font-weight: 500;
+}
+
+/* Admin form label (used in CategoryModal) */
+.admin-form-label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    color: #888;
+    margin-bottom: 0.4rem;
+    text-transform: uppercase;
+}
+
+/* Admin form group */
+.admin-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Admin input (used across modals) */
+.admin-input {
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #333;
+    font-family: inherit;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+}
+
+.admin-input:focus {
+    outline: none;
+    border-color: #333;
+}
+
+/* Danger button variant */
+.admin-btn-danger {
+    background: #dc2626;
+    color: #fff;
+    border: 1.5px solid #dc2626;
+}
+
+.admin-btn-danger:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+}
+
+/* Modal footer */
+.admin-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    background: #fafafa;
+}
+
+/* Admin loading state */
+.admin-loading {
+    padding: 3rem;
+    text-align: center;
+    color: #aaa;
+    font-size: 0.88rem;
+}
+
+/* Admin empty state */
+.admin-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #bbb;
+}
+
+.admin-empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.admin-empty h3 {
+    font-size: 0.95rem;
+    color: #888;
+    margin: 0 0 0.4rem;
+}
+
+.admin-empty p {
+    font-size: 0.8rem;
+    color: #bbb;
+    margin: 0;
+}
+
+/* Admin pagination */
+.admin-pagination {
+    padding: 0.9rem 1.5rem;
+    border-top: 1px solid #f0f0f0;
+    font-size: 0.8rem;
+    color: #aaa;
+}
+
+.admin-pagination-info {
+    font-weight: 500;
+}
+
+/* Toolbar layout */
+.admin-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Search */
+.admin-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 7px;
+    padding: 0.45rem 0.75rem;
+    flex: 1;
+    max-width: 320px;
+    transition: border-color 0.15s;
+}
+
+.admin-search:focus-within {
+    border-color: #333;
+}
+
+.admin-search-icon {
+    color: #ccc;
+    flex-shrink: 0;
+}
+
+.admin-search input {
+    border: none;
+    outline: none;
+    font-size: 0.82rem;
+    color: #333;
+    background: transparent;
+    width: 100%;
+    font-family: inherit;
+}
+
+.admin-search input::placeholder {
+    color: #ccc;
+}
+
+/* Table improvements */
+.admin-table-product-name {
+    font-weight: 600;
+    color: #111;
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+
+.admin-table-sub {
+    font-size: 0.72rem;
+    color: #aaa;
+    margin-top: 1px;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-badge.cancelled {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.status-badge.processing {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.status-badge.shipped {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.status-badge.delivered {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.status-badge.pending {
+    background: #f5f5f5;
+    color: #888;
+}
+
+/* Table actions */
+.table-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* Icon buttons */
+.admin-btn-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid #e8e8e8;
+    background: #fff;
+    color: #666;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.admin-btn-icon:hover {
+    border-color: #333;
+    color: #111;
+    background: #f5f5f5;
+}
+
+.admin-btn-icon.danger:hover {
+    border-color: #dc2626;
+    color: #dc2626;
+    background: #fff5f5;
+}
+
+/* Primary/Secondary buttons */
+.admin-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    letter-spacing: 0.03em;
+    border: 1.5px solid transparent;
+    white-space: nowrap;
+}
+
+.admin-btn-primary {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+}
+
+.admin-btn-primary:hover {
+    background: #333;
+}
+
+.admin-btn-secondary {
+    background: #fff;
+    color: #555;
+    border-color: #e0e0e0;
+}
+
+.admin-btn-secondary:hover {
+    border-color: #888;
+    color: #333;
+}
+
+.admin-btn-sm {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.75rem;
+}
+
+/* Admin card */
+.admin-card {
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.admin-card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-card-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    color: #333;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+/* Table */
+.admin-table-container {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+}
+
+.admin-table th {
+    padding: 0.65rem 1rem;
+    text-align: left;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    color: #aaa;
+    text-transform: uppercase;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+    white-space: nowrap;
+}
+
+.admin-table td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #f8f8f8;
+    vertical-align: middle;
+    color: #333;
+}
+
+.admin-table tbody tr:hover {
+    background: #fafafa;
+}
+
+.admin-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Modal overlay */
+.admin-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.admin-modal {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.admin-modal-header {
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-modal-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #111;
+    text-transform: uppercase;
+}

@@ -2,7 +2,9 @@ package com.un1.ecommerce.controller;
 
 import com.un1.ecommerce.dto.request.ProductRequest;
 import com.un1.ecommerce.dto.response.ProductResponse;
+import com.un1.ecommerce.entity.Gender;
 import com.un1.ecommerce.service.ProductService;
+import com.un1.ecommerce.entity.Gender;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +28,7 @@ public class ProductController {
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "category", required = false) Long categoryId,
             @RequestParam(value = "featured", required = false) Boolean featured,
+            @RequestParam(value = "gender", required = false) String genderStr, // thêm mới
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value = "sort", defaultValue = "id,desc") String sort) {
@@ -33,11 +36,23 @@ public class ProductController {
         String[] sortParams = sort.split(",");
         String sortBy = sortParams[0];
         String sortDir = sortParams.length > 1 ? sortParams[1] : "asc";
-        
-        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+
+        Sort.Direction direction = sortDir.equalsIgnoreCase("desc")
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<ProductResponse> products = productService.getAllProducts(keyword, categoryId, featured, pageable);
+        // Parse gender string → enum, null nếu không truyền
+        Gender gender = null;
+        if (genderStr != null && !genderStr.isBlank()) {
+            try {
+                gender = Gender.valueOf(genderStr.trim().toUpperCase());
+            } catch (IllegalArgumentException ignored) {
+                // invalid gender string → bỏ qua filter
+            }
+        }
+
+        Page<ProductResponse> products = productService.getAllProducts(keyword, categoryId, featured, gender, pageable);
         return ResponseEntity.ok(products);
     }
 

@@ -1,166 +1,468 @@
-/* SizeRecommendation - CSS Only Version */
+/* ─────────────────────────────────────────────
+   SizeRecommendation.css
+   Đồng bộ design system với SizeForm.css &
+   MySizeDrawer.css (đen/trắng, border 0.5–1px,
+   border-radius 0.5–1rem, font-weight 300–700)
+───────────────────────────────────────────── */
 
-.size-recommendation-container {
-    display: flex;
-    flex-direction: column;
-    gap: 3rem;
-    animation: fadeIn 0.5s ease;
+/* ── CSS Variables (garment colors) ── */
+.sr-container {
+    --sr-garment-fill: #f4f4f4;
+    --sr-garment-stroke: #c8c8c8;
+    --sr-guide: #d9d9d9;
 }
 
-@keyframes fadeIn {
+@media (prefers-color-scheme: dark) {
+    .sr-container {
+        --sr-garment-fill: #2a2a2a;
+        --sr-garment-stroke: #555555;
+        --sr-guide: #444444;
+    }
+}
+
+/* ── Container ── */
+.sr-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    animation: sr-fadeIn 0.35s ease;
+}
+
+@keyframes sr-fadeIn {
     from {
         opacity: 0;
+        transform: translateY(5px);
     }
 
     to {
         opacity: 1;
+        transform: translateY(0);
     }
 }
 
-.size-recommendation-stats {
-    padding: 0.5rem 0;
+/* ── Meta ── */
+.sr-meta {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 5px;
+    padding-bottom: 1rem;
+    border-bottom: 0.5px solid #e5e7eb;
 }
 
-.size-recommendation-stats-text {
-    font-size: 0.875rem;
+.sr-meta__info {
+    font-size: 12px;
     font-weight: 300;
-    color: #111827;
+    color: #9ca3af;
+    letter-spacing: 0.01em;
 }
 
-.size-recommendation-stats-row {
+.sr-meta__row {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
 }
 
-.size-recommendation-fit-pref {
-    font-weight: 400;
+.sr-meta__fit-row {
+    font-size: 12px;
+    font-weight: 300;
+    color: #6b7280;
 }
 
-.size-recommendation-change-btn {
-    font-size: 0.6875rem;
+.sr-meta__fit-row strong {
     font-weight: 500;
-    border: 1px solid #d1d5db;
-    border-radius: 9999px;
-    padding: 0.5rem 1rem;
-    background: #ffffff;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    color: #111827;
 }
 
-.size-recommendation-change-btn:hover {
+/* ── Chip button (Chỉnh sửa) ── */
+.sr-btn-chip {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 0.5px solid #d1d5db;
+    border-radius: 9999px;
+    padding: 5px 14px;
+    background: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.sr-btn-chip:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+/* ── Hero ── */
+.sr-hero {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: #f9fafb;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+}
+
+.sr-hero__left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 72px;
+}
+
+.sr-hero__eyebrow {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 2px;
+    white-space: nowrap;
+}
+
+.sr-hero__size {
+    font-size: 4.5rem;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: #111827;
+}
+
+.sr-hero__right {
+    flex: 1;
+    border-left: 0.5px solid #e5e7eb;
+    padding-left: 1.25rem;
+}
+
+.sr-hero__summary {
+    font-size: 12.5px;
+    color: #6b7280;
+    line-height: 1.65;
+    font-weight: 300;
+}
+
+/* ── Size Tabs ── */
+.sr-tabs {
+    display: flex;
+    gap: 0;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 0.75rem;
+    overflow: hidden;
     background: #f9fafb;
 }
 
-.size-recommendation-main {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.size-recommendation-title {
-    font-weight: 700;
-    font-size: 1.125rem;
-    margin: 0;
-}
-
-.size-recommendation-sizes {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    border-bottom: 1px solid #f3f4f6;
-    padding-bottom: 0.5rem;
-    position: relative;
-}
-
-.size-recommendation-size-item {
+.sr-tab {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 10px 6px;
+    background: transparent;
+    border: none;
+    border-right: 0.5px solid #e5e7eb;
     cursor: pointer;
+    transition: background 0.18s;
+    font-family: inherit;
+    position: relative;
+    min-height: 56px;
 }
 
-.size-recommendation-size-label {
-    font-size: 0.625rem;
-    font-weight: 500;
-    color: #111827;
-    margin-bottom: 0.25rem;
+.sr-tab:last-child {
+    border-right: none;
 }
 
-.size-recommendation-size-text {
-    font-size: 1.25rem;
-    transition: all 0.3s ease;
+.sr-tab:hover:not(.sr-tab--active) {
+    background: #f3f4f6;
+}
+
+.sr-tab--active {
+    background: #111827;
+}
+
+.sr-tab__dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #9ca3af;
+    position: absolute;
+    top: 7px;
+}
+
+.sr-tab--active .sr-tab__dot {
+    background: #6b7280;
+}
+
+.sr-tab__size {
+    font-size: 15px;
     font-weight: 300;
     color: #9ca3af;
+    transition: all 0.18s;
+    letter-spacing: 0.01em;
 }
 
-.size-recommendation-size-item:hover .size-recommendation-size-text {
-    color: #6b7280;
-}
-
-.size-recommendation-size-item.recommended .size-recommendation-size-text {
-    font-weight: 900;
-    transform: scale(1.1);
-    color: #000000;
-}
-
-.size-recommendation-size-indicator {
-    position: absolute;
-    bottom: -2px;
-    width: 3rem;
-    height: 3px;
-    background: #111827;
-    border-radius: 9999px;
-}
-
-.size-recommendation-fit-details {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    padding-top: 1rem;
-}
-
-.size-recommendation-fit-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.size-recommendation-fit-label {
-    font-size: 0.75rem;
-    color: #6b7280;
-    font-weight: 300;
-}
-
-.size-recommendation-fit-value {
-    width: 100%;
-    border: 1px solid #d1d5db;
-    border-radius: 9999px;
-    padding: 0.625rem 0;
-    text-align: center;
-    font-size: 0.875rem;
+.sr-tab--active .sr-tab__size {
+    font-size: 17px;
     font-weight: 700;
-    letter-spacing: -0.025em;
+    color: #ffffff;
+    letter-spacing: -0.01em;
 }
 
-.size-recommendation-summary {
-    padding-top: 1rem;
-    border-top: 1px solid #f3f4f6;
+.sr-tab__rec {
+    font-size: 9px;
+    font-weight: 400;
+    color: #9ca3af;
+    letter-spacing: 0.03em;
+    line-height: 1;
+}
+
+.sr-tab--active .sr-tab__rec {
+    color: #6b7280;
+}
+
+/* ── Panel ── */
+.sr-panel {
+    border: 0.5px solid #e5e7eb;
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: border-color 0.25s;
+}
+
+.sr-panel--recommended {
+    border: 1.5px solid #111827;
+}
+
+.sr-panel__header {
+    padding: 1rem 1.25rem;
+    border-bottom: 0.5px solid #f3f4f6;
+    background: #ffffff;
+}
+
+.sr-panel__title-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 5px;
 }
 
-.size-recommendation-summary-label {
-    font-size: 1.125rem;
+.sr-panel__size-label {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    letter-spacing: -0.02em;
+}
+
+.sr-panel__summary {
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.55;
     font-weight: 300;
 }
 
-.size-recommendation-summary-value {
-    font-size: 1.125rem;
-    font-weight: 700;
+/* ── Diagram wrap ── */
+.sr-diagram-wrap {
+    background: #fafafa;
+    padding: 1.5rem 1rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+}
+
+/* ── Garment diagram ── */
+.sr-diagram {
+    position: relative;
+    width: 100%;
+    max-width: 280px;
+}
+
+.sr-garment-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* ── Annotation pins ── */
+.sr-ann {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    pointer-events: none;
+}
+
+.sr-ann--right {
+    flex-direction: row;
+}
+
+.sr-ann--left {
+    flex-direction: row-reverse;
+}
+
+.sr-ann__line {
+    width: 22px;
+    height: 1px;
+    background: #d1d5db;
+    flex-shrink: 0;
+}
+
+.sr-ann__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 0.3s;
+}
+
+.sr-ann__content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sr-ann__content--left {
+    align-items: flex-end;
+}
+
+.sr-ann__content--right {
+    align-items: flex-start;
+}
+
+.sr-ann__area {
+    font-size: 10px;
+    font-weight: 500;
+    color: #374151;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.sr-ann__badge {
+    font-size: 9.5px;
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    transition: all 0.25s;
+}
+
+/* ── Legend ── */
+.sr-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    padding: 10px 1rem;
+    border-top: 0.5px solid #f3f4f6;
+    background: #ffffff;
+}
+
+.sr-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.sr-legend__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.sr-legend__label {
+    font-size: 10.5px;
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+/* ── Fit pills ── */
+.sr-pill {
+    font-size: 10.5px;
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 3px 10px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.01em;
+}
+
+.pill--tight {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.pill--good {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.pill--loose {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.pill--neutral {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+/* ── Annotation badges ── */
+.badge--good {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge--tight {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge--loose {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+/* Legend dots inherit badge colors */
+.sr-legend__dot.badge--good {
+    background: #059669;
+}
+
+.sr-legend__dot.badge--tight {
+    background: #d97706;
+}
+
+.sr-legend__dot.badge--loose {
+    background: #2563eb;
+}
+
+/* ── Footer ── */
+.sr-footer {
+    display: flex;
+    gap: 10px;
+    padding-top: 0.25rem;
+    border-top: 0.5px solid #f3f4f6;
+}
+
+.sr-btn-outline {
+    font-size: 12px;
+    font-weight: 500;
+    border: 0.5px solid #d1d5db;
+    border-radius: 9999px;
+    padding: 8px 20px;
+    background: #ffffff;
+    color: #374151;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    letter-spacing: 0.02em;
+}
+
+.sr-btn-outline:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
 }

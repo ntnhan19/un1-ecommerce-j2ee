@@ -49,6 +49,7 @@ backend/application-prod.properties
 backend/application-local.yml
 backend/application-dev.yml
 backend/application-prod.yml
+backend/.env
 
 ### Frontend (Node.js / React / Vite / Tailwind) ###
 frontend/node_modules/

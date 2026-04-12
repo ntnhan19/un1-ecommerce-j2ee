@@ -1,29 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import Header from "../components/common/Header";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import Footer from "../components/common/Footer";
-import productService from "../services/productService";
+import Header from "../components/common/Header";
 import MySizeDrawer from "../components/common/MySizeDrawer";
+import ProductReviews from "../components/product/ProductReviews";
 import { useSize } from "../context/SizeContext";
 import { useCart } from "../hooks/useCart";
-import { toast } from "react-toastify";
-import ProductReviews from "../components/product/ProductReviews";
+import productService from "../services/productService";
 import "../styles/pages/product-detail.css";
 
 const ProductDetail = () => {
     const { category, id } = useParams();
     const navigate = useNavigate();
+    const { attachProduct, toggleDrawer, recommendation } = useSize();
+    const { addToCart } = useCart();
+
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { toggleDrawer } = useSize();
-    const { addToCart } = useCart();
-
-    const [selectedColor, setSelectedColor] = useState(0);
+    const [selectedColor, setSelectedColor] = useState("");
     const [selectedSize, setSelectedSize] = useState("");
     const [selectedImage, setSelectedImage] = useState(0);
-    const [quantity, setQuantity] = useState(1);
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [descExpanded, setDescExpanded] = useState(false);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -31,6 +30,9 @@ const ProductDetail = () => {
             try {
                 const data = await productService.getProductById(id);
                 setProduct(data);
+                attachProduct(data);
+                const firstColor = data.colors?.[0]?.name || data.variants?.[0]?.colorName || "";
+                setSelectedColor(firstColor);
             } catch (err) {
                 console.error("Error fetching product:", err);
                 setError("Sản phẩm không tồn tại hoặc đã bị xóa.");
@@ -38,310 +40,259 @@ const ProductDetail = () => {
                 setLoading(false);
             }
         };
-
-        if (id) {
-            fetchProduct();
-        }
+        if (id) fetchProduct();
     }, [id]);
 
     const formatPrice = (price) => {
-        if (typeof price === 'string') return price;
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        if (typeof price === "string") return price;
+        return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price);
     };
 
-    if (loading) {
-        return (
-            <div className="product-detail-page">
-                <Header />
-                <div className="loading-state" style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="spinner"></div>
-                </div>
-                <Footer />
-            </div>
-        );
-    }
+    const colors = product?.colors || [];
+    const variants = product?.variants || [];
 
-    if (error || !product) {
-        return (
-            <div className="product-detail-page">
-                <Header />
-                <main className="product-detail-main" style={{ paddingTop: '150px', textAlign: 'center', minHeight: '60vh' }}>
-                    <div className="not-found-container" style={{ padding: '50px 20px' }}>
-                        <h1 style={{ fontSize: '120px', color: '#f0f0f0', margin: '0' }}>404</h1>
-                        <h2 style={{ fontSize: '24px', margin: '20px 0' }}>Rất tiếc! Sản phẩm không tồn tại</h2>
-                        <p style={{ color: '#666', marginBottom: '30px', maxWidth: '500px', margin: '0 auto 30px' }}>
-                            Sản phẩm bạn đang tìm kiếm có thể đã hết hàng, bị gỡ bỏ hoặc bạn đã nhập sai đường dẫn.
-                        </p>
-                        <button
-                            className="buy-now-btn"
-                            onClick={() => navigate(`/products/${category || 'nam'}`)}
-                            style={{
-                                padding: '15px 40px',
-                                background: '#000',
-                                color: '#fff',
-                                border: 'none',
-                                cursor: 'pointer',
-                                letterSpacing: '2px',
-                                fontWeight: 'bold'
-                            }}
-                        >
-                            QUAY LẠI CỬA HÀNG
-                        </button>
-                    </div>
-                </main>
-                <Footer />
-            </div>
-        );
-    }
+    // Sizes còn hàng theo màu đang chọn
+    const availableSizes = useMemo(() => {
+        if (!selectedColor) return product?.sizes || [];
+        return variants
+            .filter(v => v.colorName === selectedColor)
+            .map(v => ({ size: v.size, inStock: v.stock > 0 }))
+            .filter((v, i, arr) => arr.findIndex(x => x.size === v.size) === i);
+    }, [variants, product?.sizes, selectedColor]);
+
+    // Reset size khi đổi màu
+    useEffect(() => {
+        const inStockSizes = availableSizes.filter(s => s.inStock).map(s => s.size);
+        if (!inStockSizes.length) { setSelectedSize(""); return; }
+        if (!inStockSizes.includes(selectedSize)) {
+            const rec = recommendation?.recommendedSize;
+            setSelectedSize(rec && inStockSizes.includes(rec) ? rec : inStockSizes[0]);
+        }
+    }, [availableSizes, recommendation]);
+
+    const selectedVariant = useMemo(() =>
+        variants.find(v => v.colorName === selectedColor && v.size === selectedSize) || null,
+        [variants, selectedColor, selectedSize]
+    );
+
+    // Trạng thái stock tổng thể
+    const totalStock = product?.stock ?? 0;
+    const stockStatus = totalStock === 0
+        ? { label: "Hết hàng", color: "#ef4444" }
+        : totalStock <= 5
+            ? { label: `Còn ${totalStock} sản phẩm`, color: "#f59e0b" }
+            : { label: "Còn hàng", color: "#22c55e" };
+
+    const images = product?.imageUrls?.length
+        ? product.imageUrls
+        : ["/placeholder-product.png"];
 
     const validateSize = () => {
         if (!selectedSize) {
-            // Scroll to size selection
-            const sizeSection = document.querySelector('.size-selection');
-            if (sizeSection) {
-                sizeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Add highlight effect
-                sizeSection.classList.add('highlight-required');
-                setTimeout(() => {
-                    sizeSection.classList.remove('highlight-required');
-                }, 2000);
-            }
+            document.querySelector(".size-section")?.scrollIntoView({ behavior: "smooth", block: "center" });
             toast.error("Vui lòng chọn kích thước!");
             return false;
         }
         return true;
     };
 
-    const createCartItem = () => {
-        return {
-            ...product,
-            id: `${product.id}-${selectedSize}-${selectedColor}`, // Unique ID for variation
-            baseId: product.id,
-            size: selectedSize,
-            color: product.colors?.[selectedColor]?.name || "Default",
-            image: images[selectedImage],
-            // Note: addToCart in CartContext currently forces +1, but it will store the custom attributes
-        };
-    };
-
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (!validateSize()) return;
-
-        addToCart(createCartItem());
-        toast.success("Đã thêm vào giỏ hàng!");
+        try {
+            await addToCart(product, 1, selectedSize, selectedColor);
+            toast.success("Đã thêm vào giỏ hàng!");
+        } catch (err) {
+            toast.error(err.message || "Không thể thêm vào giỏ hàng");
+        }
     };
 
-    const handleBuyNow = () => {
+    const handleBuyNow = async () => {
         if (!validateSize()) return;
-
-        addToCart(createCartItem());
-        navigate('/checkout');
+        try {
+            await addToCart(product, 1, selectedSize, selectedColor);
+            navigate("/checkout");
+        } catch (err) {
+            toast.error(err.message || "Không thể thêm vào giỏ hàng");
+        }
     };
 
-    const allImages = (product.imageUrls && product.imageUrls.length > 0) ? product.imageUrls : [product.image || "/placeholder-product.png"];
-    
-    // Mỗi màu có 3 tấm ảnh, tui sẽ lọc ra đúng 3 tấm thuộc về màu đang chọn
-    const imagesPerPage = 3;
-    const startIndex = selectedColor * imagesPerPage;
-    const images = allImages.slice(startIndex, startIndex + imagesPerPage);
-    
-    // Nếu tập con bị rỗng (do chưa nhập đủ ảnh cho màu đó), lấy ảnh đại diện đầu tiên
-    if (images.length === 0) images.push(allImages[0]);
+    if (loading) return (
+        <div className="product-detail-page">
+            <Header />
+            <div style={{ height: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div className="spinner" />
+            </div>
+            <Footer />
+        </div>
+    );
+
+    if (error || !product) return (
+        <div className="product-detail-page">
+            <Header />
+            <main style={{ paddingTop: "150px", textAlign: "center", minHeight: "60vh" }}>
+                <h1 style={{ fontSize: "120px", color: "var(--color-border-tertiary)", margin: 0 }}>404</h1>
+                <h2 style={{ fontSize: "24px", margin: "20px 0" }}>Sản phẩm không tồn tại</h2>
+                <p style={{ color: "var(--color-text-secondary)", marginBottom: "30px" }}>
+                    Sản phẩm có thể đã hết hàng, bị gỡ bỏ hoặc bạn đã nhập sai đường dẫn.
+                </p>
+                <button className="btn-primary" onClick={() => navigate(`/products/${category || "nam"}`)}>
+                    Quay lại cửa hàng
+                </button>
+            </main>
+            <Footer />
+        </div>
+    );
+
+    const isLongDesc = product.description?.length > 240;
 
     return (
         <>
             <div className="product-detail-page">
                 <Header />
                 <main className="product-detail-main">
-                    {/* Back Button */}
-                    <button
-                        className="back-button"
-                        onClick={() => navigate(`/products/${category || product.categoryName?.toLowerCase() || 'nam'}`)}
-                    >
-                        BACK
-                    </button>
 
-                    <div className="product-detail-container">
-                        {/* Image Gallery */}
-                        <div className="product-gallery">
-                            <div className="main-image">
+                    {/* Breadcrumb */}
+                    <nav className="pd-breadcrumb">
+                        <span onClick={() => navigate(`/products/${category || "nam"}`)} className="pd-breadcrumb-link">
+                            {category === "nu" ? "Nữ" : "Nam"}
+                        </span>
+                        <span className="pd-breadcrumb-sep">›</span>
+                        <span style={{ color: "var(--color-text-secondary)" }}>{product.name}</span>
+                    </nav>
+
+                    <div className="pd-layout">
+
+                        {/* ── Gallery ── */}
+                        <div className="pd-gallery">
+                            <div className="pd-main-img">
                                 <img src={images[selectedImage]} alt={product.name} />
                             </div>
-                            <div className="thumbnail-images">
-                                {images.map((img, index) => (
-                                    <div
-                                        key={index}
-                                        className={`thumbnail ${selectedImage === index ? "active" : ""
-                                            }`}
-                                        onClick={() => setSelectedImage(index)}
-                                    >
-                                        <img src={img} alt={`${product.name} ${index + 1}`} />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Product Info */}
-                        <div className="product-info-section">
-                            <h1 className="product-detail-title">Thông tin sản phẩm</h1>
-
-                            <h2 className="product-detail-name">{product.name}</h2>
-                            <p className="product-detail-price">{formatPrice(product.price)}</p>
-
-                            <div className="product-actions">
-                                <button className="add-to-cart-detail" onClick={handleAddToCart}>
-                                    <span className="cart-icon"></span>
-                                    Thêm vào giỏ hàng
-                                </button>
-                                <button className="buy-now-detail" onClick={handleBuyNow}>
-                                    Mua ngay
-                                </button>
-                            </div>
-                            {/* Color Selection - Updated for List<String> from API */}
-                            {product.colors && product.colors.length > 0 && (
-                                <div className="product-options" style={{ marginBottom: '25px' }}>
-                                    <h3 className="options-title">Màu sắc: <strong>{product.colors[selectedColor]?.name}</strong></h3>
-                                    <div className="color-options-list" style={{ display: 'flex', gap: '15px', marginTop: '12px', flexWrap: 'wrap' }}>
-                                        {product.colors.map((color, index) => {
-                                            const hex = color.hex || '#000000';
-                                            const isLight = (parseInt(hex.slice(1, 3), 16) * 299 + parseInt(hex.slice(3, 5), 16) * 587 + parseInt(hex.slice(5, 7), 16) * 114) / 1000 > 200;
-
-                                            return (
-                                                <div 
-                                                    key={index} 
-                                                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}
-                                                    onClick={() => {
-                                                        setSelectedColor(index);
-                                                        setSelectedImage(0); // Reset về ảnh đầu tiên của nhóm màu mới
-                                                    }}
-                                                >
-                                                    <button
-                                                        className={`color-btn ${selectedColor === index ? "active" : ""}`}
-                                                        style={{
-                                                            width: '36px',
-                                                            height: '36px',
-                                                            borderRadius: '50%',
-                                                            backgroundColor: hex,
-                                                            border: selectedColor === index ? '2px solid #000' : (isLight ? '1px solid #ddd' : '1px solid transparent'),
-                                                            boxShadow: selectedColor === index ? '0 0 0 2px #fff, 0 0 0 3px #000' : 'none',
-                                                            cursor: 'pointer',
-                                                            padding: 0,
-                                                            transition: 'all 0.2s transform',
-                                                            transform: selectedColor === index ? 'scale(1.1)' : 'scale(1)'
-                                                        }}
-                                                        title={color.name}
-                                                    />
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                            {images.length > 1 && (
+                                <div className="pd-thumbs">
+                                    {images.map((img, i) => (
+                                        <div
+                                            key={i}
+                                            className={`pd-thumb ${selectedImage === i ? "active" : ""}`}
+                                            onClick={() => setSelectedImage(i)}
+                                        >
+                                            <img src={img} alt={`${product.name} ${i + 1}`} />
+                                        </div>
+                                    ))}
                                 </div>
                             )}
+                        </div>
 
-                            {/* Size Selection - Simplified for List<String> from API */}
-                            {product.sizes && product.sizes.length > 0 && (
-                                <div className="size-selection">
-                                    <div className="size-selection-header">
-                                        <h3 className="options-title">Kích thước</h3>
-                                        <button
-                                            className="size-guide-link"
-                                            onClick={() => toggleDrawer(true)}
-                                            type="button"
-                                            style={{ background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', padding: '0', fontSize: '13px' }}
-                                        >
-                                            Hướng dẫn chọn size theo số đo →
-                                        </button>
-                                    </div>
-                                    <div className="size-options-list" style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
-                                        {product.sizes.map((size) => (
+                        {/* ── Info Panel ── */}
+                        <div className="pd-info">
+
+                            {/* Status badge */}
+                            <div className="pd-stock-badge">
+                                <span className="pd-stock-dot" style={{ background: stockStatus.color }} />
+                                {stockStatus.label}
+                            </div>
+
+                            {/* Name & meta */}
+                            <div>
+                                <p className="pd-meta">
+                                    {product.categoryName && `${product.categoryName} · `}
+                                    {product.gender === "MALE" ? "Nam" : product.gender === "FEMALE" ? "Nữ" : "Unisex"}
+                                </p>
+                                <h1 className="pd-name">{product.name}</h1>
+                            </div>
+
+                            <p className="pd-price">{formatPrice(product.price)}</p>
+
+                            <div className="pd-divider" />
+
+                            {/* Color selector */}
+                            {colors.length > 0 && (
+                                <div className="pd-section">
+                                    <p className="pd-section-label">
+                                        Màu sắc — <strong style={{ fontWeight: 500, color: "var(--color-text-primary)" }}>{selectedColor}</strong>
+                                    </p>
+                                    <div className="pd-colors">
+                                        {colors.map(color => (
                                             <button
-                                                key={size}
-                                                className={`size-btn ${selectedSize === size ? "active" : ""}`}
-                                                onClick={() => setSelectedSize(size)}
-                                                style={{
-                                                    padding: '10px 20px',
-                                                    border: selectedSize === size ? '2px solid #000' : '1px solid #ddd',
-                                                    background: selectedSize === size ? '#000' : '#fff',
-                                                    color: selectedSize === size ? '#fff' : '#000',
-                                                    cursor: 'pointer',
-                                                    minWidth: '60px',
-                                                    fontWeight: 'bold',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                            >
-                                                {size}
-                                            </button>
+                                                key={color.name}
+                                                className={`pd-color-btn ${selectedColor === color.name ? "active" : ""}`}
+                                                style={{ background: color.hex || "#111" }}
+                                                title={color.name}
+                                                onClick={() => setSelectedColor(color.name)}
+                                            />
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                        </div>
-                    </div>
-
-                    {/* Product Description */}
-                    <div className="product-description-section">
-                        <h3 className="description-title">Mô tả sản phẩm</h3>
-                        <div className="description-content">
-                            {product.description && (
-                                <div style={{ marginBottom: '1rem' }}>
-                                    <p style={{
-                                        whiteSpace: "pre-line",
-                                        display: isExpanded ? 'block' : '-webkit-box',
-                                        WebkitLineClamp: isExpanded ? 'unset' : 3,
-                                        WebkitBoxOrient: 'vertical',
-                                        overflow: 'hidden',
-                                        lineHeight: '1.6',
-                                        color: '#444'
-                                    }}>
-                                        {product.description}
+                            {/* Size selector */}
+                            <div className="pd-section size-section">
+                                <div className="pd-section-header">
+                                    <p className="pd-section-label" style={{ marginBottom: 0 }}>Kích thước</p>
+                                    <button
+                                        className="pd-ai-link"
+                                        onClick={() => { attachProduct(product); toggleDrawer(true); }}
+                                    >
+                                        ✦ Tư vấn size bằng AI
+                                    </button>
+                                </div>
+                                <div className="pd-sizes">
+                                    {availableSizes.map(({ size, inStock }) => {
+                                        const isRec = recommendation?.recommendedSize === size;
+                                        return (
+                                            <button
+                                                key={size}
+                                                className={`pd-size-btn ${selectedSize === size ? "active" : ""} ${!inStock ? "oos" : ""}`}
+                                                onClick={() => inStock && setSelectedSize(size)}
+                                                disabled={!inStock}
+                                                title={!inStock ? "Hết hàng" : ""}
+                                            >
+                                                {size}
+                                                {isRec && <span className="pd-ai-tag">AI gợi ý</span>}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {/* Hiển thị size nào hết hàng thay vì tồn kho số */}
+                                {availableSizes.some(s => !s.inStock) && (
+                                    <p className="pd-oos-note">
+                                        {availableSizes.filter(s => !s.inStock).map(s => s.size).join(", ")} — hết hàng với màu này
                                     </p>
-                                    {product.description.length > 200 && (
-                                        <button
-                                            onClick={() => setIsExpanded(!isExpanded)}
-                                            style={{
-                                                background: 'none',
-                                                border: 'none',
-                                                color: '#000',
-                                                fontWeight: 'bold',
-                                                textDecoration: 'underline',
-                                                cursor: 'pointer',
-                                                padding: '0',
-                                                marginTop: '5px',
-                                                fontSize: '14px'
-                                            }}
-                                        >
-                                            {isExpanded ? 'Rút gọn' : 'Xem thêm'}
+                                )}
+                            </div>
+
+                            {/* CTA buttons */}
+                            <div className="pd-actions">
+                                <button className="pd-btn-buy" onClick={handleBuyNow}>Mua ngay</button>
+                                <button className="pd-btn-cart" onClick={handleAddToCart}>Thêm vào giỏ hàng</button>
+                            </div>
+
+                            <div className="pd-divider" />
+
+                            {/* Description */}
+                            {product.description && (
+                                <div className="pd-section">
+                                    <p className="pd-section-label">Mô tả sản phẩm</p>
+                                    <div className={`pd-desc ${descExpanded ? "expanded" : ""}`}>
+                                        <p>{product.description}</p>
+                                        {!descExpanded && isLongDesc && <div className="pd-desc-fade" />}
+                                    </div>
+                                    {isLongDesc && (
+                                        <button className="pd-expand-btn" onClick={() => setDescExpanded(p => !p)}>
+                                            {descExpanded ? "Thu gọn ↑" : "Xem thêm ↓"}
                                         </button>
                                     )}
                                 </div>
                             )}
-                            {product.material && (
-                                <div className="material-info">
-                                    <strong>CHẤT LIỆU:</strong>
-                                    <p style={{ whiteSpace: "pre-line" }}>{product.material}</p>
-                                </div>
-                            )}
-                            {product.careInstructions && (
-                                <div className="care-instructions">
-                                    <strong>Hướng dẫn bảo quản:</strong>
-                                    <p style={{ whiteSpace: "pre-line" }}>
-                                        {product.careInstructions}
-                                    </p>
-                                </div>
-                            )}
                         </div>
                     </div>
+
+                    {/* Reviews */}
+                    <div className="pd-reviews-wrap">
+                        <ProductReviews productId={product.id} />
+                    </div>
                 </main>
-
-                <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 1rem' }}>
-                    <ProductReviews productId={product.id} />
-                </div>
-
                 <Footer />
             </div>
-
-            {/* AI Size Assistant Drawer - Outside main container */}
             <MySizeDrawer />
         </>
     );

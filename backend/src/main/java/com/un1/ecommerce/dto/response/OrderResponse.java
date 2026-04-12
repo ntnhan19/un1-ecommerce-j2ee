@@ -1,8 +1,8 @@
 package com.un1.ecommerce.dto.response;
 
 import com.un1.ecommerce.entity.Order;
-import com.un1.ecommerce.entity.OrderItem;
 import com.un1.ecommerce.entity.OrderStatus;
+import com.un1.ecommerce.entity.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +22,20 @@ public class OrderResponse {
     private BigDecimal totalAmount;
     private OrderStatus status;
     private LocalDateTime orderDate;
+    private String address; // ← thêm
+    private String phone; // ← thêm
+    private UserInfo user; // ← thêm để frontend lấy tên/email
     private List<OrderItemResponse> items;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class UserInfo {
+        private Long id;
+        private String email;
+        private String name; // fullName hoặc username
+    }
 
     @Data
     @NoArgsConstructor
@@ -45,11 +58,22 @@ public class OrderResponse {
                         .build())
                 .collect(Collectors.toList());
 
+        User u = order.getUser();
+        UserInfo userInfo = UserInfo.builder()
+                .id(u.getId())
+                .email(u.getEmail())
+                // Điều chỉnh theo field thực tế:
+                .name(u.getFullName() != null ? u.getFullName() : u.getEmail())
+                .build();
+
         return OrderResponse.builder()
                 .id(order.getId())
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus())
                 .orderDate(order.getOrderDate())
+                .address(order.getAddress())
+                .phone(order.getPhone())
+                .user(userInfo)
                 .items(itemResponses)
                 .build();
     }

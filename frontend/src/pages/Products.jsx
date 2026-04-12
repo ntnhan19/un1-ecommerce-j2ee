@@ -18,17 +18,15 @@ const Products = () => {
   const page = parseInt(searchParams.get("page") || "0");
   const size = parseInt(searchParams.get("size") || "10");
 
+  // selectedFilters giờ chứa categoryId + featured thay vì mockdata
   const [selectedFilters, setSelectedFilters] = useState({
-    collection: null,
-    seller: null,
-    type: null,
+    categoryId: null,
+    featured: null,
   });
 
-  // Map category name to ID
-  // TODO: Fetch this from an actual Category API later
-  const getCategoryId = (cat) => {
-    if (cat === "nam") return 1;
-    if (cat === "nu") return 2;
+  const getGender = (cat) => {
+    if (cat === "nam") return "MALE";
+    if (cat === "nu") return "FEMALE";
     return null;
   };
 
@@ -36,12 +34,13 @@ const Products = () => {
     setLoading(true);
     setError(null);
     try {
-      const categoryId = getCategoryId(category);
       const data = await productService.getProducts({
-        category: categoryId,
+        gender: getGender(category),
+        categoryId: selectedFilters.categoryId,
+        featured: selectedFilters.featured,
         page,
         size,
-        sort: "id,desc"
+        sort: "id,desc",
       });
       setProducts(data.content || []);
       setTotalPages(data.totalPages || 0);
@@ -51,17 +50,23 @@ const Products = () => {
     } finally {
       setLoading(false);
     }
-  }, [category, page, size]);
+  }, [category, page, size, selectedFilters]);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
   const handleFilterChange = (filterType, value) => {
-    setSelectedFilters((prev) => ({
-      ...prev,
-      [filterType]: prev[filterType] === value ? null : value,
-    }));
+    // Reset về trang 0 khi đổi filter
+    searchParams.set("page", "0");
+    setSearchParams(searchParams);
+    setSelectedFilters((prev) => ({ ...prev, [filterType]: value }));
+  };
+
+  const handleReset = () => {
+    searchParams.set("page", "0");
+    setSearchParams(searchParams);
+    setSelectedFilters({ categoryId: null, featured: null });
   };
 
   const handlePageChange = (newPage) => {
@@ -91,11 +96,7 @@ const Products = () => {
             <h1 className="cover-title">{categoryName}</h1>
           </div>
           <div className="cover-logo">
-            <img
-              src="/un1-logo.png"
-              alt="UN1"
-              className="cover-logo-image"
-            />
+            <img src="/un1-logo.png" alt="UN1" className="cover-logo-image" />
           </div>
         </div>
 
@@ -104,6 +105,7 @@ const Products = () => {
             category={category}
             selectedFilters={selectedFilters}
             onFilterChange={handleFilterChange}
+            onReset={handleReset}
           />
           <div className="product-list-content" style={{ flex: 1 }}>
             {error ? (
@@ -118,7 +120,6 @@ const Products = () => {
                   category={category}
                   loading={loading}
                 />
-
                 {totalPages > 1 && (
                   <div className="pagination">
                     <button

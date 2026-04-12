@@ -1,46 +1,91 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/header :: header}"></head>
+
 <body>
     <div th:replace="~{fragments/sidebar :: sidebar('categories')}"></div>
-    
+
     <div class="main-content">
         <nav th:replace="~{fragments/header :: navbar}"></nav>
-        
+
         <div class="container-fluid mt-4 mb-5">
-            <nav aria-label="breadcrumb" class="mb-4 text-primary">
+            <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a th:href="@{/admin/categories}">Danh mục</a></li>
-                    <li class="breadcrumb-item active" th:text="${category.id != null ? 'Chỉnh sửa' : 'Thêm mới'}">Thêm mới</li>
+                    <li class="breadcrumb-item active" th:text="${category.id != null ? 'Chỉnh sửa' : 'Thêm mới'}">Thêm
+                        mới</li>
                 </ol>
             </nav>
 
             <div class="row justify-content-center">
-                <div class="col-md-6">
+                <div class="col-md-7 col-lg-6">
                     <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
-                        <div class="bg-primary text-white p-3">
-                            <h5 class="m-0">
-                                <i th:class="${category.id != null ? 'bi bi-pencil-square me-2' : 'bi bi-plus-circle me-2'}"></i>
-                                <span th:text="${category.id != null ? 'Chỉnh sửa Danh mục' : 'Thêm Danh mục mới'}">Tiêu đề</span>
+                        <!-- Header -->
+                        <div class="p-3 d-flex align-items-center gap-2"
+                            th:classappend="${category.id != null ? 'bg-warning' : 'bg-primary'}" style="color: white;">
+                            <i
+                                th:class="${category.id != null ? 'bi bi-pencil-square fs-5' : 'bi bi-plus-circle fs-5'}"></i>
+                            <h5 class="m-0"
+                                th:text="${category.id != null ? 'Chỉnh sửa Danh mục' : 'Thêm Danh mục mới'}">Tiêu đề
                             </h5>
                         </div>
+
                         <div class="card-body p-4">
-                            <form th:action="@{/admin/categories/save}" method="post">
+                            <form th:action="@{/admin/categories/save}" method="post" novalidate id="categoryForm">
                                 <input type="hidden" name="id" th:value="${category.id}">
-                                
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Tên danh mục</label>
-                                    <input type="text" name="name" th:value="${category.name}" class="form-control" placeholder="Ví dụ: Áo thời trang" required>
-                                </div>
-                                
+
+                                <!-- Name field -->
                                 <div class="mb-4">
-                                    <label class="form-label fw-bold">Mô tả</label>
-                                    <textarea name="description" class="form-control" rows="5" th:text="${category.description}" placeholder="Mô tả ngắn gọn về danh mục..."></textarea>
+                                    <label class="form-label fw-bold" for="catName">
+                                        Tên danh mục <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" id="catName" name="name" th:value="${category.name}"
+                                        class="form-control form-control-lg" placeholder="Ví dụ: Áo thời trang"
+                                        maxlength="100" required oninput="updateNameCounter(this)">
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <small class="text-danger d-none" id="nameError">Tên danh mục không được để
+                                            trống.</small>
+                                        <small class="text-muted ms-auto" id="nameCounter">0/100</small>
+                                    </div>
                                 </div>
-                                
+
+                                <!-- Description field -->
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold" for="catDesc">Mô tả</label>
+                                    <textarea id="catDesc" name="description" class="form-control" rows="5"
+                                        th:text="${category.description}" maxlength="500"
+                                        placeholder="Mô tả ngắn gọn về danh mục..."
+                                        oninput="updateDescCounter(this)"></textarea>
+                                    <div class="d-flex justify-content-end mt-1">
+                                        <small class="text-muted" id="descCounter">0/500</small>
+                                    </div>
+                                </div>
+
+                                <!-- Preview card -->
+                                <div class="mb-4 p-3 rounded-3" style="background:#f8fafc; border:1px solid #e2e8f0;">
+                                    <small class="text-muted d-block mb-2 fw-semibold">Xem trước</small>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center"
+                                            style="width:40px; height:40px; flex-shrink:0;">
+                                            <i class="bi bi-tag text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-semibold" id="previewName" style="color:#1e293b;">—</div>
+                                            <small class="text-muted" id="previewDesc">Chưa có mô tả</small>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="d-flex gap-3 justify-content-end">
-                                    <a th:href="@{/admin/categories}" class="btn btn-light px-4 rounded-pill">Hủy</a>
-                                    <button type="submit" class="btn btn-primary px-5 rounded-pill shadow-sm">
+                                    <a th:href="@{/admin/categories}" class="btn btn-light px-4 rounded-pill">
+                                        <i class="bi bi-arrow-left me-1"></i> Hủy
+                                    </a>
+                                    <button type="submit" class="btn px-5 rounded-pill shadow-sm"
+                                        th:classappend="${category.id != null ? 'btn-warning' : 'btn-primary'}"
+                                        onclick="return validateForm()">
+                                        <i class="bi bi-save me-1"></i>
                                         <span th:text="${category.id != null ? 'Cập nhật' : 'Lưu danh mục'}">Lưu</span>
                                     </button>
                                 </div>
@@ -53,7 +98,37 @@
 
         <div th:replace="~{fragments/footer :: footer}"></div>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const nameEl = document.getElementById('catName');
+        const descEl = document.getElementById('catDesc');
+
+        function updateNameCounter(el) {
+            document.getElementById('nameCounter').textContent = el.value.length + '/100';
+            document.getElementById('previewName').textContent = el.value.trim() || '—';
+            document.getElementById('nameError').classList.toggle('d-none', el.value.trim().length > 0);
+        }
+
+        function updateDescCounter(el) {
+            document.getElementById('descCounter').textContent = el.value.length + '/500';
+            document.getElementById('previewDesc').textContent = el.value.trim() || 'Chưa có mô tả';
+        }
+
+        function validateForm() {
+            const name = nameEl.value.trim();
+            if (!name) {
+                document.getElementById('nameError').classList.remove('d-none');
+                nameEl.focus();
+                return false;
+            }
+            return true;
+        }
+
+        // Initialize counters and preview on page load
+        updateNameCounter(nameEl);
+        updateDescCounter(descEl);
+    </script>
 </body>
+
 </html>

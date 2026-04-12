@@ -10,7 +10,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/un1_ecommerce_dev?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8
     username: root
-    password: password
+    password: [PASSWORD]
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -29,5 +29,10 @@ springdoc:
 
 app:
   google:
-    client-id: [GOOGLE_CLIENT_ID]
-    secret: [GOOGLE_CLIENT_SECRET]
+    client-id: [OAUTH_CLIENT_ID]
+    secret: [OAUTH_CLIENT_SECRET]
+
+google:
+  gemini:
+    api-key: [GCP_API_KEY]
+    api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent

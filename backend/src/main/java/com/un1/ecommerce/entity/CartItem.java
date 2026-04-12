@@ -30,4 +30,10 @@ public class CartItem {
     @Min(value = 1, message = "Quantity must be greater than zero")
     @Column(nullable = false)
     private Integer quantity;
+
+    @Column(length = 20)
+    private String size;
+
+    @Column(length = 50)
+    private String color;
 }
