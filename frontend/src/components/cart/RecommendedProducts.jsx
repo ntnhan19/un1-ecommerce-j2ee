@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCart } from '../../hooks/useCart';
 import productService from '../../services/productService';
-import ProductCardSkeleton from '../product/ProductCardSkeleton';
 
 const RecommendedProducts = () => {
   const { addToCart } = useCart();
@@ -13,7 +12,6 @@ const RecommendedProducts = () => {
     const fetchRecommendations = async () => {
       setLoading(true);
       try {
-        // Fetching top 4 products for recommendations
         const data = await productService.getProducts({ size: 4, sort: 'id,asc' });
         setProducts(data.content || []);
       } catch (err) {
@@ -50,13 +48,16 @@ const RecommendedProducts = () => {
       <h3>SẢN PHẨM GỢI Ý</h3>
 
       <div className="recommended-grid">
-        {products.map(p => {
-          const image = (p.imageUrls && p.imageUrls.length > 0) ? p.imageUrls[0] : (p.image || '/placeholder-product.png');
+        {products.map((product) => {
+          const image = (product.imageUrls && product.imageUrls.length > 0)
+            ? product.imageUrls[0]
+            : (product.image || '/placeholder-product.png');
+
           return (
-            <div key={p.id} className="recommended-card">
+            <div key={product.id} className="recommended-card">
               <img
                 src={image}
-                alt={p.name}
+                alt={product.name}
                 className="recommended-card-image"
                 onError={(e) => {
                   e.target.src = 'https://via.placeholder.com/200x200?text=Product';
@@ -64,19 +65,16 @@ const RecommendedProducts = () => {
               />
 
               <div className="recommended-card-content">
-                <h4 className="recommended-card-name">{p.name}</h4>
-
-                <p className="recommended-card-price">
-                  {formatPrice(p.price)}
-                </p>
+                <h4 className="recommended-card-name">{product.name}</h4>
+                <p className="recommended-card-price">{formatPrice(product.price)}</p>
 
                 <button
                   onClick={() =>
                     addToCart({
-                      ...p,
+                      ...product,
                       quantity: 1,
-                      color: (p.colors && p.colors.length > 0) ? p.colors[0] : 'Đen',
-                      size: (p.sizes && p.sizes.length > 0) ? p.sizes[0] : 'M',
+                      color: (product.colors && product.colors.length > 0) ? (product.colors[0].name || product.colors[0]) : 'Đen',
+                      size: (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'M',
                     })
                   }
                   className="recommended-card-btn"
@@ -93,5 +91,3 @@ const RecommendedProducts = () => {
 };
 
 export default RecommendedProducts;
-
-

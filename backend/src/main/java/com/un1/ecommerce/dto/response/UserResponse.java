@@ -17,6 +17,9 @@ public class UserResponse {
     private Long id;
     private String email;
     private String fullName;
+    private String phone;
+    private String authProvider;
+    private boolean passwordLoginEnabled;
     private Set<String> roles;
     private LocalDateTime createdAt;
 }

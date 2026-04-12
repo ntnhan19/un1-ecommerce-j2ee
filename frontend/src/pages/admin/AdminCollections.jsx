@@ -26,7 +26,7 @@ const AdminCollections = () => {
                             </span>
                         </div>
                     </div>
-                    
+
                     <CollectionsTable />
                 </div>
             </div>

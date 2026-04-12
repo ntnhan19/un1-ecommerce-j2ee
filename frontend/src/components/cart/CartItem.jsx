@@ -2,80 +2,36 @@ import React, { useState } from 'react';
 import { useCart } from '../../hooks/useCart';
 
 const CartItem = ({ item }) => {
-  const { updateQuantity, removeFromCart, updateItemAttributes, parsePrice } = useCart();
+  const { updateQuantity, removeFromCart } = useCart();
 
-  // Available options
   const availableSizes = ['S', 'M', 'L', 'XL', 'XXL'];
-  const availableColors = [
-    { name: 'Đen', value: 'black' },
-    { name: 'Trắng', value: 'white' },
-    { name: 'Xám', value: 'gray' },
-    { name: 'Xanh Navy', value: 'navy' },
-    { name: 'Be', value: 'beige' },
-  ];
+  const availableColors = ['Đen', 'Trắng', 'Xám', 'Xanh Navy', 'Be'];
 
-  const [selectedSize, setSelectedSize] = useState(item.size || 'M');
-  const [selectedColor, setSelectedColor] = useState(item.color || 'Đen');
+  // Size/color lưu trên server rồi, chỉ dùng để hiển thị
+  const [size, setSize] = useState(item.size || 'M');
+  const [color, setColor] = useState(item.color || 'Đen');
 
-  const handleSizeChange = (e) => {
-    const newSize = e.target.value;
-    setSelectedSize(newSize);
-    if (updateItemAttributes) {
-      updateItemAttributes(item.id, { size: newSize });
-    }
-  };
-
-  const handleColorChange = (e) => {
-    const newColor = e.target.value;
-    setSelectedColor(newColor);
-    if (updateItemAttributes) {
-      updateItemAttributes(item.id, { color: newColor });
-    }
-  };
-
-  // Calculate prices
-  const itemPrice = parsePrice(item.price);
+  const itemPrice = Number(item.price);
   const itemTotal = itemPrice * item.quantity;
 
   return (
     <div className="cart-item">
       <div className="item-image">
-        <img src={item.image} alt={item.name} />
+        <img src={item.productImage} alt={item.productName} />
       </div>
 
       <div className="item-details">
-        <h4 className="item-name">{item.name}</h4>
+        <h4 className="item-name">{item.productName}</h4>
 
-        {/* Size and Color Selectors */}
         <div className="item-attributes">
           <div className="attribute-group">
             <label className="attribute-label">Màu sắc:</label>
-            <select
-              className="attribute-select"
-              value={selectedColor}
-              onChange={handleColorChange}
-            >
-              {availableColors.map(color => (
-                <option key={color.value} value={color.name}>
-                  {color.name}
-                </option>
-              ))}
-            </select>
+            {/* Hiển thị thôi — muốn đổi variant thì xóa & thêm lại */}
+            <span className="attribute-value">{color}</span>
           </div>
-
           <div className="attribute-group">
             <label className="attribute-label">Size:</label>
-            <select
-              className="attribute-select"
-              value={selectedSize}
-              onChange={handleSizeChange}
-            >
-              {availableSizes.map(size => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </select>
+            <span className="attribute-value">{size}</span>
           </div>
         </div>
 
@@ -86,18 +42,14 @@ const CartItem = ({ item }) => {
             className="qty-btn"
             onClick={() => updateQuantity(item.id, item.quantity - 1)}
             disabled={item.quantity === 1}
-          >
-            −
-          </button>
+          >−</button>
 
           <span className="qty-value">{item.quantity}</span>
 
           <button
             className="qty-btn"
             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-          >
-            +
-          </button>
+          >+</button>
         </div>
       </div>
 
@@ -105,19 +57,14 @@ const CartItem = ({ item }) => {
         <div className="item-total-price">
           {itemTotal.toLocaleString()} VND
         </div>
-
         <button
           onClick={() => removeFromCart(item.id)}
           className="remove-btn"
           title="Xóa sản phẩm"
-        >
-          ✕
-        </button>
+        >✕</button>
       </div>
     </div>
   );
 };
 
 export default CartItem;
-
-

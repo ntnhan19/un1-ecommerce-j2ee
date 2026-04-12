@@ -1,52 +1,82 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import productService from '../services/productService';
 
 const SizeContext = createContext();
 
 export const SizeProvider = ({ children }) => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [currentProduct, setCurrentProduct] = useState(null);
     const [measurements, setMeasurements] = useState({
         gender: '',
-        height: 0,
-        weight: 0,
+        height: '',
+        weight: '',
         age: '',
-        fitPreference: 2, // 0: Bó sát, 1: Vừa vặn (tiêu chuẩn), 2: Tiêu chuẩn, 3: Thoải mái, 4: Rộng
+        fitPreference: 2,
         shoulder: '',
         chest: '',
         waist: '',
         hips: '',
     });
-
     const [recommendation, setRecommendation] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const toggleDrawer = (open) => setIsDrawerOpen(open ?? !isDrawerOpen);
+
+    const attachProduct = useCallback((product) => {
+        setCurrentProduct(prev => {
+            if (product?.id !== prev?.id) {
+                setRecommendation(null);
+                setError('');
+            }
+            return product || null;
+        });
+    }, []);
 
     const updateMeasurements = (newMeasurements) => {
         setMeasurements((prev) => ({ ...prev, ...newMeasurements }));
     };
 
-    const calculateSize = () => {
-        const { height, weight } = measurements;
-        if (!height || !weight) return null;
+    const calculateSize = async (overrideProduct, overrideMeasurements) => {
+        const product = overrideProduct || currentProduct;
+        const input = overrideMeasurements ? { ...measurements, ...overrideMeasurements } : measurements;
+        if (!product?.id) {
+            setError('Vui lòng chọn sản phẩm trước khi tư vấn size.');
+            return null;
+        }
 
-        let size = 'M';
-        const bmi = weight / ((height / 100) ** 2);
-
-        if (bmi < 18.5) size = 'XS';
-        else if (bmi >= 18.5 && bmi < 22) size = 'S';
-        else if (bmi >= 22 && bmi < 25) size = 'M';
-        else if (bmi >= 25 && bmi < 30) size = 'L';
-        else if (bmi >= 30 && bmi < 35) size = 'XL';
-        else size = 'XXL';
-
-        setRecommendation(size);
-        return size;
+        setLoading(true);
+        setError('');
+        try {
+            const payload = {
+                productId: product.id,
+                gender: input.gender,
+                age: Number(input.age),
+                height: Number(input.height),
+                weight: Number(input.weight),
+                fitPreference: Number(input.fitPreference),
+                shoulder: input.shoulder ? Number(input.shoulder) : null,
+                chest: input.chest ? Number(input.chest) : null,
+                waist: input.waist ? Number(input.waist) : null,
+                hips: input.hips ? Number(input.hips) : null,
+            };
+            const response = await productService.recommendSize(payload);
+            setRecommendation(response);
+            return response;
+        } catch (err) {
+            const message = err?.message || 'Không thể tư vấn size lúc này.';
+            setError(message);
+            return null;
+        } finally {
+            setLoading(false);
+        }
     };
 
     const clearData = () => {
         setMeasurements({
             gender: '',
-            height: 0,
-            weight: 0,
+            height: '',
+            weight: '',
             age: '',
             fitPreference: 2,
             shoulder: '',
@@ -55,17 +85,28 @@ export const SizeProvider = ({ children }) => {
             hips: '',
         });
         setRecommendation(null);
-    }
+        setError('');
+    };
+
+    const resetRecommendation = () => {
+        setRecommendation(null);
+        setError('');
+    };
 
     return (
         <SizeContext.Provider
             value={{
                 isDrawerOpen,
                 toggleDrawer,
+                currentProduct,
+                attachProduct,
                 measurements,
                 recommendation,
+                loading,
+                error,
                 updateMeasurements,
                 calculateSize,
+                resetRecommendation,
                 clearData,
             }}
         >

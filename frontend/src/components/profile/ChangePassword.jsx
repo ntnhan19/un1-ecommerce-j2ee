@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import { useAuth } from '../../context/AuthContext';
+import profileService from '../../services/profileService';
 
 const ChangePassword = () => {
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
+    const requiresCurrentPassword = user?.passwordLoginEnabled !== false;
     const [formData, setFormData] = useState({
         currentPassword: '',
         newPassword: '',
@@ -23,7 +26,6 @@ const ChangePassword = () => {
             ...prev,
             [name]: value
         }));
-        // Clear error when user types
         if (errors[name]) {
             setErrors(prev => ({
                 ...prev,
@@ -42,7 +44,7 @@ const ChangePassword = () => {
     const validateForm = () => {
         const newErrors = {};
 
-        if (!formData.currentPassword) {
+        if (requiresCurrentPassword && !formData.currentPassword) {
             newErrors.currentPassword = 'Vui lòng nhập mật khẩu hiện tại';
         }
 
@@ -52,7 +54,7 @@ const ChangePassword = () => {
             newErrors.newPassword = 'Mật khẩu phải có ít nhất 8 ký tự';
         } else if (formData.newPassword.length > 20) {
             newErrors.newPassword = 'Mật khẩu không được quá 20 ký tự';
-        } else if (formData.newPassword === formData.currentPassword) {
+        } else if (requiresCurrentPassword && formData.newPassword === formData.currentPassword) {
             newErrors.newPassword = 'Mật khẩu mới phải khác mật khẩu hiện tại';
         }
 
@@ -77,18 +79,17 @@ const ChangePassword = () => {
         setIsLoading(true);
 
         try {
-            // Mock API call - Replace with real API later
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Success
-            setSuccessMessage('Đổi mật khẩu thành công!');
+            await profileService.changePassword(formData);
+            await refreshUser();
+            setSuccessMessage(requiresCurrentPassword ? 'Đổi mật khẩu thành công' : 'Thiết lập mật khẩu thành công');
+            toast.success(requiresCurrentPassword ? 'Đổi mật khẩu thành công' : 'Thiết lập mật khẩu thành công');
             setFormData({
                 currentPassword: '',
                 newPassword: '',
                 confirmPassword: ''
             });
         } catch (error) {
-            setErrors({ submit: 'Đổi mật khẩu thất bại. Vui lòng thử lại.' });
+            setErrors({ submit: error?.message || 'Không thể cập nhật mật khẩu. Vui lòng thử lại.' });
         } finally {
             setIsLoading(false);
         }
@@ -97,8 +98,14 @@ const ChangePassword = () => {
     return (
         <div className="change-password-section">
             <div className="section-header">
-                <h2>Đổi mật khẩu</h2>
-                <p className="section-subtitle">Cập nhật mật khẩu của bạn để bảo mật tài khoản</p>
+                <div>
+                    <h2>{requiresCurrentPassword ? 'Đổi mật khẩu' : 'Thiết lập mật khẩu'}</h2>
+                    <p className="section-subtitle">
+                        {requiresCurrentPassword
+                            ? 'Cập nhật mật khẩu của bạn để bảo mật tài khoản'
+                            : 'Tài khoản này đang đăng nhập bằng Google. Bạn có thể đặt mật khẩu để đăng nhập bằng email sau này.'}
+                    </p>
+                </div>
             </div>
 
             <form onSubmit={handleSubmit} className="password-form">
@@ -114,33 +121,35 @@ const ChangePassword = () => {
                     </div>
                 )}
 
-                <div className="form-group">
-                    <label htmlFor="currentPassword">Mật khẩu hiện tại <span className="required">*</span></label>
-                    <div className="password-input-wrapper">
-                        <input
-                            type={showPasswords.current ? "text" : "password"}
-                            id="currentPassword"
-                            name="currentPassword"
-                            value={formData.currentPassword}
-                            onChange={handleChange}
-                            className={errors.currentPassword ? 'error' : ''}
-                        />
-                        <button
-                            type="button"
-                            className="toggle-password"
-                            onClick={() => togglePasswordVisibility('current')}
-                        >
-                            {showPasswords.current ? '👁️' : '👁️‍🗨️'}
-                        </button>
+                {requiresCurrentPassword && (
+                    <div className="form-group">
+                        <label htmlFor="currentPassword">Mật khẩu hiện tại <span className="required">*</span></label>
+                        <div className="password-input-wrapper">
+                            <input
+                                type={showPasswords.current ? 'text' : 'password'}
+                                id="currentPassword"
+                                name="currentPassword"
+                                value={formData.currentPassword}
+                                onChange={handleChange}
+                                className={errors.currentPassword ? 'error' : ''}
+                            />
+                            <button
+                                type="button"
+                                className="toggle-password"
+                                onClick={() => togglePasswordVisibility('current')}
+                            >
+                                {showPasswords.current ? 'Hide' : 'Show'}
+                            </button>
+                        </div>
+                        {errors.currentPassword && <span className="error-text">{errors.currentPassword}</span>}
                     </div>
-                    {errors.currentPassword && <span className="error-text">{errors.currentPassword}</span>}
-                </div>
+                )}
 
                 <div className="form-group">
                     <label htmlFor="newPassword">Mật khẩu mới <span className="required">*</span></label>
                     <div className="password-input-wrapper">
                         <input
-                            type={showPasswords.new ? "text" : "password"}
+                            type={showPasswords.new ? 'text' : 'password'}
                             id="newPassword"
                             name="newPassword"
                             value={formData.newPassword}
@@ -152,7 +161,7 @@ const ChangePassword = () => {
                             className="toggle-password"
                             onClick={() => togglePasswordVisibility('new')}
                         >
-                            {showPasswords.new ? '👁️' : '👁️‍🗨️'}
+                            {showPasswords.new ? 'Hide' : 'Show'}
                         </button>
                     </div>
                     {errors.newPassword && <span className="error-text">{errors.newPassword}</span>}
@@ -163,7 +172,7 @@ const ChangePassword = () => {
                     <label htmlFor="confirmPassword">Xác nhận mật khẩu mới <span className="required">*</span></label>
                     <div className="password-input-wrapper">
                         <input
-                            type={showPasswords.confirm ? "text" : "password"}
+                            type={showPasswords.confirm ? 'text' : 'password'}
                             id="confirmPassword"
                             name="confirmPassword"
                             value={formData.confirmPassword}
@@ -175,7 +184,7 @@ const ChangePassword = () => {
                             className="toggle-password"
                             onClick={() => togglePasswordVisibility('confirm')}
                         >
-                            {showPasswords.confirm ? '👁️' : '👁️‍🗨️'}
+                            {showPasswords.confirm ? 'Hide' : 'Show'}
                         </button>
                     </div>
                     {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
@@ -198,7 +207,11 @@ const ChangePassword = () => {
                         Hủy
                     </button>
                     <button type="submit" className="btn-save" disabled={isLoading}>
-                        {isLoading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
+                        {isLoading
+                            ? 'Đang xử lý...'
+                            : requiresCurrentPassword
+                                ? 'Đổi mật khẩu'
+                                : 'Thiết lập mật khẩu'}
                     </button>
                 </div>
             </form>

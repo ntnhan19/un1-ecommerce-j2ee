@@ -1,15 +1,10 @@
 package com.un1.ecommerce.entity;
 
+import com.un1.ecommerce.dto.ColorDto;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,53 +21,67 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Product name cannot be blank")
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String name;
 
-    @NotNull(message = "Price is required")
-    @Min(value = 0, message = "Price cannot be negative")
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal price;
 
-    @NotNull(message = "Stock is required")
-    @Min(value = 0, message = "Stock cannot be negative")
     @Column(nullable = false)
-    private Integer stock;
+    @Builder.Default
+    private Integer stock = 0;
 
-    @Lob
     @Column(columnDefinition = "TEXT")
     private String description;
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
-    @Column(name = "image_url", length = 1000)
-    @Builder.Default
-    private List<String> imageUrls = new ArrayList<>();
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "product_colors", joinColumns = @JoinColumn(name = "product_id"))
-    @Builder.Default
-    private List<ProductColor> colors = new ArrayList<>();
-
-    @ElementCollection(fetch = FetchType.LAZY)
-    @CollectionTable(name = "product_sizes", joinColumns = @JoinColumn(name = "product_id"))
-    @Column(name = "size")
-    @Builder.Default
-    private List<String> sizes = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @Column(nullable = false)
+    /**
+     * Product-level image URLs stored as a simple JSON array.
+     * Requires a JSON type mapping (Hibernate 6 @JdbcTypeCode or a custom
+     * converter).
+     */
+    @ElementCollection
+    @CollectionTable(name = "product_image_urls", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> imageUrls = new ArrayList<>();
+
+    /**
+     * Color list stored as JSON (name + hex per color).
+     * Uses @Convert with a JPA AttributeConverter — see ColorDtoListConverter.
+     */
+    @Convert(converter = com.un1.ecommerce.converter.ColorDtoListConverter.class)
+    @Column(name = "colors", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<ColorDto> colors = new ArrayList<>();
+
+    /**
+     * Size list stored as a comma-separated string or JSON.
+     * Uses @Convert — see StringListConverter.
+     */
+    @Convert(converter = com.un1.ecommerce.converter.StringListConverter.class)
+    @Column(name = "sizes", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> sizes = new ArrayList<>();
+
     @Builder.Default
     private Boolean featured = false;
 
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
+    /**
+     * Per-variant stock and measurements.
+     * CascadeType.ALL — persisted via ProductServiceImpl; orphanRemoval keeps DB
+     * clean.
+     */
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<ProductVariant> variants = new ArrayList<>();
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    @Enumerated(EnumType.STRING)
+    private ProductType productType;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 }

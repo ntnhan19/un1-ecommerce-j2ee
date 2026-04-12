@@ -1,750 +1,309 @@
-import React, { useState, useEffect } from 'react';
-import { mockAdminProducts, formatCurrency, COLOR_MAP, getColorHex } from '../../utils/mockAdmin';
+import React, { useState, useEffect, useCallback } from 'react';
 import productService from '../../services/productService';
+import categoryService from '../../services/categoryService';
+import { formatCurrency } from '../../utils/formatters';
+import ProductModal from './product-modal/ProductModal';
 import '../../styles/components/Admin.css';
 
-// ---- Color Swatch Component ----
-// Renders a square swatch + name label below, matching the reference image style
-const ColorSwatch = ({ color, size = 'md' }) => {
-    const isLight = isLightColor(color.hex);
-    const swatchSize = size === 'sm' ? 32 : 48;
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
-            <div
-                style={{
-                    width: swatchSize,
-                    height: swatchSize,
-                    backgroundColor: color.hex,
-                    border: isLight ? '1.5px solid #ccc' : '1.5px solid transparent',
-                    borderRadius: 4,
-                    flexShrink: 0,
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                }}
-                title={color.name}
-            />
-            <span style={{
-                fontSize: '0.65rem',
-                color: '#555',
-                textAlign: 'center',
-                lineHeight: 1.2,
-                maxWidth: swatchSize + 8,
-                wordBreak: 'break-word',
-            }}>
-                {color.name}
-            </span>
-        </div>
-    );
+const PRODUCT_TYPE_LABEL = {
+    TOP: 'Áo trên',
+    BOTTOM: 'Quần',
+    DRESS: 'Váy',
+    OUTERWEAR: 'Áo ngoài',
 };
 
-// Determine if a hex color is light (to add a visible border)
-const isLightColor = (hex) => {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return (r * 299 + g * 587 + b * 114) / 1000 > 180;
+const GENDER_LABEL = {
+    MALE: 'Nam',
+    FEMALE: 'Nữ',
+    UNISEX: 'Unisex',
 };
 
-// ---- Color Editor in Modal ----
-// Allows adding/removing colors with name input + color picker
-const ColorEditor = ({ colors, onChange }) => {
-    const [newName, setNewName] = useState('');
-    const [newHex, setNewHex] = useState('#000000');
+const Toast = ({ message, type, onClose }) => (
+    <div style={{
+        position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 9999,
+        background: type === 'success' ? '#16a34a' : '#dc2626',
+        color: '#fff', padding: '0.85rem 1.25rem', borderRadius: 8,
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+        display: 'flex', alignItems: 'center', gap: '0.65rem',
+        fontSize: '0.85rem', fontWeight: 500, maxWidth: 360,
+        animation: 'fadeIn 0.2s ease',
+    }}>
+        <span>{type === 'success' ? '✓' : '✕'}</span>
+        <span style={{ flex: 1 }}>{message}</span>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', opacity: 0.7, fontSize: '1rem' }}>×</button>
+    </div>
+);
 
-    const handleAdd = () => {
-        const trimmed = newName.trim();
-        if (!trimmed) return;
-        // Auto-fill hex from COLOR_MAP if name matches
-        const autoHex = getColorHex(trimmed);
-        const hex = autoHex !== '#CCCCCC' ? autoHex : newHex;
-        if (colors.some((c) => c.name.toLowerCase() === trimmed.toLowerCase())) return; // no duplicates
-        onChange([...colors, { name: trimmed, hex }]);
-        setNewName('');
-        setNewHex('#000000');
-    };
-
-    const handleRemove = (name) => {
-        onChange(colors.filter((c) => c.name !== name));
-    };
-
-    const handleHexChange = (name, hex) => {
-        onChange(colors.map((c) => (c.name === name ? { ...c, hex } : c)));
-    };
-
-    const handleKeyDown = (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); handleAdd(); }
-    };
-
-    return (
-        <div>
-            {/* Existing colors */}
-            {colors.length > 0 && (
-                <div style={{
-                    display: 'flex', flexWrap: 'wrap', gap: '0.6rem',
-                    marginBottom: '0.75rem', padding: '0.75rem',
-                    background: '#fafafa', borderRadius: 6, border: '1px solid #f0f0f0',
-                }}>
-                    {colors.map((c) => (
-                        <div key={c.name} style={{
-                            display: 'flex', flexDirection: 'column', alignItems: 'center',
-                            gap: '0.3rem', position: 'relative',
-                        }}>
-                            {/* Color swatch with inline hex picker */}
-                            <div style={{ position: 'relative' }}>
-                                <div style={{
-                                    width: 44, height: 44,
-                                    backgroundColor: c.hex,
-                                    border: isLightColor(c.hex) ? '1.5px solid #ccc' : '1.5px solid transparent',
-                                    borderRadius: 4,
-                                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                                    cursor: 'pointer',
-                                    overflow: 'hidden',
-                                    position: 'relative',
-                                }}>
-                                    {/* Hidden color input overlaid on swatch */}
-                                    <input
-                                        type="color"
-                                        value={c.hex}
-                                        onChange={(e) => handleHexChange(c.name, e.target.value)}
-                                        title="Đổi màu"
-                                        style={{
-                                            position: 'absolute', inset: 0, width: '100%', height: '100%',
-                                            opacity: 0, cursor: 'pointer', padding: 0, border: 'none',
-                                        }}
-                                    />
-                                </div>
-                                {/* Remove button */}
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemove(c.name)}
-                                    title="Xóa màu"
-                                    style={{
-                                        position: 'absolute', top: -6, right: -6,
-                                        width: 16, height: 16, borderRadius: '50%',
-                                        background: '#dc2626', color: '#fff', border: 'none',
-                                        fontSize: '0.6rem', cursor: 'pointer', lineHeight: 1,
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontWeight: 700,
-                                    }}
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                            <span style={{ fontSize: '0.65rem', color: '#555', maxWidth: 52, textAlign: 'center', lineHeight: 1.2 }}>
-                                {c.name}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Add new color row */}
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input
-                    type="text"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Tên màu (VD: Đen, Be...)"
-                    style={{
-                        flex: 1, padding: '0.5rem 0.65rem', border: '1px solid #e0e0e0',
-                        borderRadius: 6, fontSize: '0.82rem', background: '#fafafa',
-                    }}
-                />
-                <div style={{ position: 'relative', flexShrink: 0 }}>
-                    <div style={{
-                        width: 36, height: 36, borderRadius: 6,
-                        backgroundColor: newHex,
-                        border: isLightColor(newHex) ? '1.5px solid #ccc' : '1.5px solid #ddd',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-                        overflow: 'hidden', cursor: 'pointer',
-                    }}>
-                        <input
-                            type="color"
-                            value={newHex}
-                            onChange={(e) => setNewHex(e.target.value)}
-                            title="Chọn màu"
-                            style={{
-                                position: 'absolute', inset: 0, width: '100%', height: '100%',
-                                opacity: 0, cursor: 'pointer', padding: 0, border: 'none',
-                            }}
-                        />
-                    </div>
-                </div>
-                <button
-                    type="button"
-                    onClick={handleAdd}
-                    disabled={!newName.trim()}
-                    style={{
-                        padding: '0.5rem 0.9rem', background: '#333', color: '#fff',
-                        border: 'none', borderRadius: 6, fontSize: '0.82rem',
-                        fontWeight: 600, cursor: 'pointer', flexShrink: 0,
-                        opacity: newName.trim() ? 1 : 0.4,
-                    }}
-                >
-                    + Thêm
-                </button>
+const DeleteConfirmModal = ({ product, onConfirm, onCancel }) => (
+    <div className="admin-modal-overlay" onClick={onCancel}>
+        <div className="admin-modal" style={{ maxWidth: 380 }} onClick={e => e.stopPropagation()}>
+            <div className="admin-modal-header">
+                <span className="admin-modal-title" style={{ color: '#dc2626' }}>Xóa sản phẩm</span>
+                <button className="admin-btn-icon" onClick={onCancel}>×</button>
             </div>
-            <p style={{ fontSize: '0.72rem', color: '#888', margin: '0.4rem 0 0' }}>
-                💡 Nhập tên màu tiếng Việt (Đen, Trắng, Be...) để tự động nhận diện màu. Click vào ô màu để chỉnh hex.
-            </p>
-        </div>
-    );
-};
-
-// ---- Size Chart Editor ----
-const SizeChartEditor = ({ sizeChart, onChange }) => {
-    // Default structure if empty
-    const defaultChart = {
-        S: { chest: '', shoulder: '', length: '' },
-        M: { chest: '', shoulder: '', length: '' },
-        L: { chest: '', shoulder: '', length: '' },
-        XL: { chest: '', shoulder: '', length: '' },
-    };
-
-    const chart = sizeChart || defaultChart;
-    const sizes = ['S', 'M', 'L', 'XL'];
-    const metrics = [
-        { key: 'chest', label: 'Ngực (cm)' },
-        { key: 'shoulder', label: 'Vai (cm)' },
-        { key: 'length', label: 'Dài (cm)' },
-    ];
-
-    const handleChange = (size, metric, value) => {
-        onChange({
-            ...chart,
-            [size]: {
-                ...chart[size],
-                [metric]: value
-            }
-        });
-    };
-
-    return (
-        <div style={{ overflowX: 'auto' }}>
-            <table className="admin-table" style={{ fontSize: '0.85rem' }}>
-                <thead>
-                    <tr>
-                        <th style={{ padding: '8px', background: '#f9f9f9' }}>Size</th>
-                        {sizes.map(size => (
-                            <th key={size} style={{ padding: '8px', background: '#f9f9f9', textAlign: 'center' }}>
-                                {size}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {metrics.map(metric => (
-                        <tr key={metric.key}>
-                            <td style={{ fontWeight: 600, padding: '8px' }}>{metric.label}</td>
-                            {sizes.map(size => (
-                                <td key={`${size}-${metric.key}`} style={{ padding: '4px' }}>
-                                    <input
-                                        type="text"
-                                        value={chart[size]?.[metric.key] || ''}
-                                        onChange={(e) => handleChange(size, metric.key, e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '4px',
-                                            border: '1px solid #ddd',
-                                            borderRadius: '4px',
-                                            textAlign: 'center'
-                                        }}
-                                        placeholder="-"
-                                    />
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
-};
-
-// ---- Product Modal ----
-const EMPTY_PRODUCT = {
-    name: '',
-    category: 'nam',
-    price: '',
-    stock: '',
-    status: 'active',
-    featured: false,
-    colors: [],
-    sizes: 'S, M, L, XL',
-    imageUrls: '', // Added for free-form URL input
-    description: '',
-    material: '',
-    careInstructions: '',
-    sizeChart: {
-        S: { chest: '', shoulder: '', length: '' },
-        M: { chest: '', shoulder: '', length: '' },
-        L: { chest: '', shoulder: '', length: '' },
-        XL: { chest: '', shoulder: '', length: '' },
-    }
-};
-
-const ProductModal = ({ product, onClose, onSave }) => {
-    const [form, setForm] = useState(
-        product
-            ? {
-                ...EMPTY_PRODUCT,
-                ...product,
-                sizes: Array.isArray(product.sizes) ? product.sizes.join(', ') : product.sizes,
-                imageUrls: Array.isArray(product.imageUrls) ? product.imageUrls.join(', ') : (product.imageUrls || ''),
-                sizeChart: product.sizeChart || EMPTY_PRODUCT.sizeChart
-            }
-            : EMPTY_PRODUCT
-    );
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleColorsChange = (colors) => {
-        setForm((prev) => ({ ...prev, colors }));
-    };
-
-    const handleSizeChartChange = (newChart) => {
-        setForm(prev => ({ ...prev, sizeChart: newChart }));
-    };
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSave(form);
-    };
-
-    return (
-        <div className="admin-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-            <div className="admin-modal" style={{ maxWidth: 800 }}>
-                <div className="admin-modal-header">
-                    <span className="admin-modal-title">
-                        {product ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
-                    </span>
-                    <button className="admin-modal-close" onClick={onClose}>✕</button>
-                </div>
-                <form onSubmit={handleSubmit}>
-                    <div className="admin-modal-body">
-                        <div className="admin-form-grid">
-                            <div className="admin-form-group full-width">
-                                <label>Tên sản phẩm *</label>
-                                <input
-                                    name="name"
-                                    value={form.name}
-                                    onChange={handleChange}
-                                    placeholder="VD: ÁO KHOÁC PHA LEN"
-                                    required
-                                />
-                            </div>
-                            <div className="admin-form-group">
-                                <label>Danh mục</label>
-                                <select name="category" value={form.category} onChange={handleChange}>
-                                    <option value="nam">Nam</option>
-                                    <option value="nu">Nữ</option>
-                                </select>
-                            </div>
-                            <div className="admin-form-group">
-                                <label>Trạng thái</label>
-                                <select name="status" value={form.status} onChange={handleChange}>
-                                    <option value="active">Đang bán</option>
-                                    <option value="out_of_stock">Hết hàng</option>
-                                </select>
-                            </div>
-                            <div className="admin-form-group">
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', height: '100%', marginTop: '1.5rem' }}>
-                                    <input
-                                        type="checkbox"
-                                        name="featured"
-                                        checked={form.featured}
-                                        onChange={(e) => setForm(prev => ({ ...prev, featured: e.target.checked }))}
-                                        style={{ width: '18px', height: '18px' }}
-                                    />
-                                    <span>Sản phẩm nổi bật</span>
-                                </label>
-                            </div>
-                            <div className="admin-form-group">
-                                <label>Giá (VND) *</label>
-                                <input
-                                    name="price"
-                                    type="number"
-                                    value={form.price}
-                                    onChange={handleChange}
-                                    placeholder="VD: 1399000"
-                                    required
-                                    min="0"
-                                />
-                            </div>
-                            <div className="admin-form-group full-width">
-                                <label>Link hình ảnh (Phân cách bằng dấu phẩy) *</label>
-                                <textarea
-                                    name="imageUrls"
-                                    value={form.imageUrls}
-                                    onChange={handleChange}
-                                    placeholder="VD: https://images.com/anh1.jpg, https://images.com/anh2.jpg"
-                                    rows={2}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #e0e0e0',
-                                        borderRadius: '6px',
-                                        fontFamily: 'inherit',
-                                        resize: 'vertical'
-                                    }}
-                                    required
-                                />
-                            </div>
-                            <div className="admin-form-group">
-                                <label>Tồn kho</label>
-                                <input
-                                    name="stock"
-                                    type="number"
-                                    value={form.stock}
-                                    onChange={handleChange}
-                                    placeholder="VD: 50"
-                                    min="0"
-                                />
-                            </div>
-                            <div className="admin-form-group full-width">
-                                <label>Mô tả sản phẩm</label>
-                                <textarea
-                                    name="description"
-                                    value={form.description}
-                                    onChange={handleChange}
-                                    placeholder="Áo nỉ dáng suông..."
-                                    rows={3}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #e0e0e0',
-                                        borderRadius: '6px',
-                                        fontFamily: 'inherit',
-                                        resize: 'vertical'
-                                    }}
-                                />
-                            </div>
-
-                            <div className="admin-form-group full-width">
-                                <label>Chất liệu (xuống dòng để tạo gạch đầu dòng)</label>
-                                <textarea
-                                    name="material"
-                                    value={form.material}
-                                    onChange={handleChange}
-                                    placeholder={"+ LỚP NGOÀI: 80% cotton...\n+ CHI TIẾT: 20% polyester..."}
-                                    rows={3}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #e0e0e0',
-                                        borderRadius: '6px',
-                                        fontFamily: 'inherit',
-                                        resize: 'vertical'
-                                    }}
-                                />
-                            </div>
-
-                            <div className="admin-form-group full-width">
-                                <label>Hướng dẫn bảo quản</label>
-                                <textarea
-                                    name="careInstructions"
-                                    value={form.careInstructions}
-                                    onChange={handleChange}
-                                    placeholder={"Giặt máy ở nhiệt độ tối đa 30ºC...\nKhông sử dụng nước tẩy..."}
-                                    rows={3}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #e0e0e0',
-                                        borderRadius: '6px',
-                                        fontFamily: 'inherit',
-                                        resize: 'vertical'
-                                    }}
-                                />
-                            </div>
-
-                            <div className="admin-form-group full-width">
-                                <label>Kích thước (phân cách bằng dấu phẩy)</label>
-                                <input
-                                    name="sizes"
-                                    value={form.sizes}
-                                    onChange={handleChange}
-                                    placeholder="S, M, L, XL"
-                                />
-                            </div>
-
-                            {/* Size Chart Editor - full width */}
-                            <div className="admin-form-group full-width">
-                                <label>Bảng thông số kích thước</label>
-                                <SizeChartEditor sizeChart={form.sizeChart} onChange={handleSizeChartChange} />
-                            </div>
-
-                            {/* Color Editor - full width */}
-                            <div className="admin-form-group full-width">
-                                <label>Màu sắc ({form.colors.length} màu)</label>
-                                <ColorEditor colors={form.colors} onChange={handleColorsChange} />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="admin-modal-footer">
-                        <button type="button" className="admin-btn admin-btn-secondary" onClick={onClose}>
-                            Hủy
-                        </button>
-                        <button type="submit" className="admin-btn admin-btn-primary">
-                            {product ? 'Lưu thay đổi' : 'Thêm sản phẩm'}
-                        </button>
-                    </div>
-                </form>
+            <div style={{ padding: '1.25rem 1.5rem' }}>
+                <p style={{ margin: 0, color: '#444', lineHeight: 1.6, fontSize: '0.88rem' }}>
+                    Bạn có chắc muốn xóa <strong style={{ color: '#111' }}>{product.name}</strong>?
+                    <br />
+                    <span style={{ color: '#dc2626' }}>Hành động này không thể hoàn tác.</span>
+                </p>
+            </div>
+            <div className="admin-modal-footer">
+                <button className="admin-btn admin-btn-secondary" onClick={onCancel}>Hủy bỏ</button>
+                <button className="admin-btn admin-btn-danger" onClick={onConfirm}>Xóa sản phẩm</button>
             </div>
         </div>
-    );
-};
+    </div>
+);
 
-// ---- Main Table ----
 const ProductsTable = () => {
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState('all');
     const [modalOpen, setModalOpen] = useState(false);
     const [editProduct, setEditProduct] = useState(null);
-    const [deleteConfirm, setDeleteConfirm] = useState(null);
-    const [viewDescription, setViewDescription] = useState(null);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [toast, setToast] = useState(null);
 
-    const fetchProducts = async () => {
+    const showToast = useCallback((message, type = 'success') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3500);
+    }, []);
+
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            const data = await productService.getProducts({ size: 100 }); // Get all for simplicity
-            setProducts(data.content || []);
+            const [productsData, categoriesData] = await Promise.all([
+                productService.getProducts({ size: 200 }),
+                categoryService.getAllCategories(),
+            ]);
+            setProducts(productsData.content || []);
+            setCategories(categoriesData || []);
         } catch (error) {
-            console.error('Failed to fetch products:', error);
-            alert('Không thể tải danh sách sản phẩm');
+            console.error('Failed to fetch data:', error);
+            showToast('Không thể tải dữ liệu. Kiểm tra kết nối!', 'error');
         } finally {
             setLoading(false);
         }
-    };
+    }, [showToast]);
 
-    useEffect(() => {
-        fetchProducts();
-    }, []);
+    useEffect(() => { fetchData(); }, [fetchData]);
 
-    const filtered = (products || []).filter((p) => {
-        const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
-        const matchCat = categoryFilter === 'all' || p.categoryName?.toLowerCase() === categoryFilter.toLowerCase() || p.category === categoryFilter;
-        return matchSearch && matchCat;
+    // Filter
+    const filtered = products.filter(p => {
+        const matchSearch = p.name?.toLowerCase().includes(search.toLowerCase());
+        const matchCat = categoryFilter === 'all' || p.categoryId?.toString() === categoryFilter;
+        const matchType = typeFilter === 'all' || p.productType === typeFilter;
+        return matchSearch && matchCat && matchType;
     });
 
     const handleAdd = () => { setEditProduct(null); setModalOpen(true); };
     const handleEdit = (product) => { setEditProduct(product); setModalOpen(true); };
-    const handleDelete = async (id) => { 
-        try {
-            await productService.deleteProduct(id);
-            setProducts((prev) => prev.filter((p) => p.id !== id));
-            setDeleteConfirm(null);
-        } catch (error) {
-            alert('Xóa thất bại: ' + (error.message || 'Lỗi hệ thống'));
-        }
-    };
 
-    const handleSave = async (data) => {
-        // Map frontend 'nam'/'nu' to backend categoryId
-        const categoryId = data.category === 'nam' ? 1 : (data.category === 'nu' ? 2 : null);
-        
-        // Final payload preparation
-        const payload = {
-            ...data,
-            price: Number(data.price),
-            stock: Number(data.stock),
-            categoryId,
-            sizes: typeof data.sizes === 'string' 
-                ? data.sizes.split(',').map(s => s.trim()).filter(Boolean) 
-                : data.sizes,
-            imageUrls: typeof data.imageUrls === 'string' 
-                ? data.imageUrls.split(',').map(u => u.trim()).filter(Boolean) 
-                : data.imageUrls
+    const handleSave = async (payload) => {
+        const totalStock = payload.variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0);
+
+        const finalPayload = {
+            ...payload,
+            stock: totalStock
         };
 
         try {
             if (editProduct) {
-                const updated = await productService.updateProduct(editProduct.id, payload);
+                const updated = await productService.updateProduct(editProduct.id, finalPayload);
                 setProducts((prev) => prev.map((p) => (p.id === editProduct.id ? updated : p)));
             } else {
-                const created = await productService.createProduct(payload);
+                const created = await productService.createProduct(finalPayload);
                 setProducts((prev) => [created, ...prev]);
             }
             setModalOpen(false);
         } catch (error) {
-            alert('Lưu thất bại: ' + (error.message || 'Lỗi hệ thống'));
+            console.error("Chi tiết lỗi 400:", error);
+            // In ra lỗi từ Backend để dễ debug hơn
+            const errorMsg = error.message || (error.errors ? JSON.stringify(error.errors) : 'Vui lòng kiểm tra lại dữ liệu nhập');
+            alert('Lưu thất bại: ' + errorMsg);
         }
     };
 
-    const statusLabel = (s) => (s === 'active' ? 'Đang bán' : 'Hết hàng');
+    const handleDelete = async () => {
+        if (!deleteTarget) return;
+        try {
+            await productService.deleteProduct(deleteTarget.id);
+            setProducts(prev => prev.filter(p => p.id !== deleteTarget.id));
+            showToast('Đã xóa sản phẩm!');
+        } catch (error) {
+            showToast('Xóa thất bại: ' + (error.message || 'Lỗi hệ thống'), 'error');
+        } finally {
+            setDeleteTarget(null);
+        }
+    };
+
+    if (loading) {
+        return <div className="admin-loading">Đang tải dữ liệu sản phẩm...</div>;
+    }
 
     return (
         <div>
             {/* Toolbar */}
             <div className="admin-toolbar">
                 <div className="admin-search">
-                    <span className="admin-search-icon"></span>
+                    <svg className="admin-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
                     <input
                         type="text"
                         placeholder="Tìm kiếm sản phẩm..."
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={e => setSearch(e.target.value)}
                     />
                 </div>
-                <div className="admin-filter-tabs">
-                    {[
-                        { key: 'all', label: 'Tất cả' },
-                        { key: 'nam', label: 'Nam' },
-                        { key: 'nu', label: 'Nữ' },
-                    ].map((f) => (
-                        <button
-                            key={f.key}
-                            className={`admin-filter-tab ${categoryFilter === f.key ? 'active' : ''}`}
-                            onClick={() => setCategoryFilter(f.key)}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <select
+                        className="admin-select"
+                        value={categoryFilter}
+                        onChange={e => setCategoryFilter(e.target.value)}
+                    >
+                        <option value="all">Tất cả danh mục</option>
+                        {categories.map(c => (
+                            <option key={c.id} value={c.id.toString()}>{c.name}</option>
+                        ))}
+                    </select>
+                    <select
+                        className="admin-select"
+                        value={typeFilter}
+                        onChange={e => setTypeFilter(e.target.value)}
+                    >
+                        <option value="all">Tất cả loại</option>
+                        <option value="TOP">Áo trên</option>
+                        <option value="BOTTOM">Quần</option>
+                        <option value="DRESS">Váy</option>
+                        <option value="OUTERWEAR">Áo ngoài</option>
+                    </select>
+                    <button className="admin-btn admin-btn-primary admin-btn-sm" onClick={handleAdd}>
+                        + THÊM SẢN PHẨM
+                    </button>
                 </div>
-                <button className="admin-btn admin-btn-primary" onClick={handleAdd} style={{ marginLeft: 'auto' }}>
-                    + Thêm sản phẩm
-                </button>
             </div>
 
             {/* Table */}
             <div className="admin-card">
+                <div className="admin-card-header">
+                    <h3 className="admin-card-title">DANH SÁCH SẢN PHẨM</h3>
+                    <span className="admin-card-sub">{filtered.length} / {products.length} sản phẩm</span>
+                </div>
                 <div className="admin-table-container">
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th>Sản phẩm</th>
-                                <th>Mô tả</th>
-                                <th>Danh mục</th>
-                                <th>Giá</th>
-                                <th>Tồn kho</th>
-                                <th>Màu sắc</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
+                                <th>SẢN PHẨM</th>
+                                <th>DANH MỤC</th>
+                                <th>LOẠI / GIỚI</th>
+                                <th>GIÁ</th>
+                                <th>TỒN KHO</th>
+                                <th>TRẠNG THÁI</th>
+                                <th style={{ textAlign: 'right' }}>THAO TÁC</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filtered.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8}>
+                                    <td colSpan={7}>
                                         <div className="admin-empty">
-                                            <div className="admin-empty-icon">🔍</div>
+                                            <div className="admin-empty-icon">📦</div>
                                             <h3>Không tìm thấy sản phẩm</h3>
                                             <p>Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
-                                filtered.map((product) => (
+                                filtered.map(product => (
                                     <tr key={product.id}>
-                                        {/* Product name + image */}
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                {product.imageUrls && product.imageUrls.length > 0 ? (
-                                                    <img src={product.imageUrls[0]} alt={product.name} className="admin-table-img" />
-                                                ) : product.image ? (
-                                                    <img src={product.image} alt={product.name} className="admin-table-img" />
+                                                {product.imageUrls?.length > 0 ? (
+                                                    <img
+                                                        src={product.imageUrls[0]}
+                                                        alt={product.name}
+                                                        className="admin-table-img"
+                                                        style={{ width: 48, height: 56, objectFit: 'cover', borderRadius: 6, flexShrink: 0 }}
+                                                    />
                                                 ) : (
-                                                    <div style={{
-                                                        width: 40, height: 50, borderRadius: 4,
-                                                        background: '#f5f5f5', display: 'flex',
-                                                        alignItems: 'center', justifyContent: 'center',
-                                                        fontSize: '1.2rem', border: '1px solid #e0e0e0',
-                                                    }}>
-                                                        👕
+                                                    <div style={{ width: 48, height: 56, background: '#f0f0f0', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc', fontSize: '1.25rem', flexShrink: 0 }}>
+                                                        ☐
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                        <div className="admin-table-product-name">{product.name}</div>
-                                                        {product.featured && (
-                                                            <span style={{ 
-                                                                background: '#fef3c7', 
-                                                                color: '#92400e', 
-                                                                fontSize: '0.65rem', 
-                                                                padding: '2px 6px', 
-                                                                borderRadius: '4px',
-                                                                fontWeight: 700
-                                                            }}>NỔI BẬT</span>
-                                                        )}
-                                                    </div>
-                                                    <div className="admin-table-sub">ID: {product.id}</div>
+                                                    <div className="admin-table-product-name">{product.name}</div>
+                                                    <div className="admin-table-sub">ID #{product.id}</div>
+                                                    {product.colors?.length > 0 && (
+                                                        <div style={{ display: 'flex', gap: 3, marginTop: 3 }}>
+                                                            {product.colors.slice(0, 5).map((c, i) => (
+                                                                <span key={i} title={c.name} style={{
+                                                                    width: 10, height: 10, borderRadius: '50%',
+                                                                    background: c.hex || '#ccc',
+                                                                    border: '1px solid rgba(0,0,0,0.1)',
+                                                                    display: 'inline-block',
+                                                                }} />
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <div 
-                                                className="admin-table-desc" 
-                                                title="Click để xem chi tiết"
-                                                onClick={() => setViewDescription(product)}
-                                                style={{
-                                                    maxWidth: '220px',
-                                                    fontSize: '0.8rem',
-                                                    lineHeight: '1.4',
-                                                    color: '#666',
-                                                    display: '-webkit-box',
-                                                    WebkitLineClamp: 2,
-                                                    WebkitBoxOrient: 'vertical',
-                                                    overflow: 'hidden',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                {product.description || <em style={{ color: '#ccc' }}>Chưa có mô tả</em>}
+                                            <span className="admin-badge-category">
+                                                {product.categoryName || '—'}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style={{ fontSize: '0.8rem', color: '#555' }}>
+                                                {PRODUCT_TYPE_LABEL[product.productType] || product.productType || '—'}
+                                            </div>
+                                            <div className="admin-table-sub">
+                                                {GENDER_LABEL[product.gender] || product.gender || ''}
                                             </div>
                                         </td>
-                                        <td style={{ textTransform: 'capitalize' }}>
-                                            {product.categoryName || (product.category === 'nam' ? 'Nam' : 'Nữ')}
-                                        </td>
-                                        <td style={{ fontWeight: 600, color: '#333' }}>
+                                        <td style={{ fontWeight: 700, color: '#111', fontSize: '0.88rem' }}>
                                             {formatCurrency(product.price)}
                                         </td>
                                         <td>
-                                            <span style={{ fontWeight: 600, color: product.stock === 0 ? '#dc2626' : '#333' }}>
+                                            <span style={{
+                                                fontWeight: 700,
+                                                color: product.stock === 0 ? '#dc2626' : product.stock < 10 ? '#d97706' : '#333',
+                                                fontSize: '0.88rem',
+                                            }}>
                                                 {product.stock}
                                             </span>
+                                            {product.variants?.length > 0 && (
+                                                <div className="admin-table-sub">{product.variants.length} variants</div>
+                                            )}
                                         </td>
-
-                                        {/* Color Swatches column */}
                                         <td>
-                                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
-                                                {product.colors && product.colors.slice(0, 4).map((c) => (
-                                                    <ColorSwatch key={c.name} color={c} size="sm" />
-                                                ))}
-                                                {product.colors && product.colors.length > 4 && (
-                                                    <div style={{
-                                                        display: 'flex', flexDirection: 'column', alignItems: 'center',
-                                                        gap: '0.25rem',
-                                                    }}>
-                                                        <div style={{
-                                                            width: 32, height: 32, borderRadius: 4,
-                                                            background: '#f0f0f0', border: '1px solid #ddd',
-                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                            fontSize: '0.72rem', fontWeight: 600, color: '#666',
-                                                        }}>
-                                                            +{product.colors.length - 4}
-                                                        </div>
-                                                        <span style={{ fontSize: '0.65rem', color: '#888' }}>thêm</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-
-                                        <td>
-                                            <span className={`status-badge ${product.stock > 0 ? 'active' : 'out_of_stock'}`}>
-                                                {product.stock > 0 ? 'Đang bán' : 'Hết hàng'}
+                                            <span className={`status-badge ${product.stock > 0 ? 'active' : 'cancelled'}`}>
+                                                {product.stock > 0 ? 'ĐANG BÁN' : 'HẾT HÀNG'}
                                             </span>
+                                            {product.featured && (
+                                                <div style={{ marginTop: 4 }}>
+                                                    <span className="status-badge processing" style={{ fontSize: '0.65rem' }}>NỔI BẬT</span>
+                                                </div>
+                                            )}
                                         </td>
                                         <td>
-                                            <div className="table-actions">
+                                            <div className="table-actions" style={{ justifyContent: 'flex-end' }}>
                                                 <button className="admin-btn-icon" title="Chỉnh sửa" onClick={() => handleEdit(product)}>
-                                                    ✏️
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                                    </svg>
                                                 </button>
-                                                <button className="admin-btn-icon danger" title="Xóa" onClick={() => setDeleteConfirm(product.id)}>
-                                                    🗑️
+                                                <button className="admin-btn-icon danger" title="Xóa" onClick={() => setDeleteTarget(product)}>
+                                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <polyline points="3 6 5 6 21 6" />
+                                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                                    </svg>
                                                 </button>
                                             </div>
                                         </td>
@@ -761,66 +320,25 @@ const ProductsTable = () => {
                 </div>
             </div>
 
-            {/* Add/Edit Modal */}
+            {/* Modals */}
             {modalOpen && (
                 <ProductModal
                     product={editProduct}
+                    categories={categories}
                     onClose={() => setModalOpen(false)}
                     onSave={handleSave}
                 />
             )}
 
-            {/* View Description Modal */}
-            {viewDescription && (
-                <div className="admin-modal-overlay" onClick={() => setViewDescription(null)}>
-                    <div className="admin-modal" style={{ maxWidth: 500 }}>
-                        <div className="admin-modal-header">
-                            <span className="admin-modal-title">Chi tiết mô tả: {viewDescription.name}</span>
-                            <button className="admin-modal-close" onClick={() => setViewDescription(null)}>✕</button>
-                        </div>
-                        <div className="admin-modal-body">
-                            <div style={{ 
-                                whiteSpace: 'pre-line', 
-                                fontSize: '0.9rem', 
-                                lineHeight: '1.6',
-                                color: '#333'
-                            }}>
-                                {viewDescription.description || <em style={{ color: '#ccc' }}>Chưa có mô tả</em>}
-                            </div>
-                        </div>
-                        <div className="admin-modal-footer">
-                            <button className="admin-btn admin-btn-secondary" onClick={() => setViewDescription(null)}>
-                                Đóng
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            {deleteTarget && (
+                <DeleteConfirmModal
+                    product={deleteTarget}
+                    onConfirm={handleDelete}
+                    onCancel={() => setDeleteTarget(null)}
+                />
             )}
 
-            {/* Delete Confirm */}
-            {deleteConfirm && (
-                <div className="admin-modal-overlay" onClick={() => setDeleteConfirm(null)}>
-                    <div className="admin-modal" style={{ maxWidth: 400 }}>
-                        <div className="admin-modal-header">
-                            <span className="admin-modal-title">Xác nhận xóa</span>
-                            <button className="admin-modal-close" onClick={() => setDeleteConfirm(null)}>✕</button>
-                        </div>
-                        <div className="admin-modal-body">
-                            <p style={{ color: '#555', margin: 0 }}>
-                                Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể hoàn tác.
-                            </p>
-                        </div>
-                        <div className="admin-modal-footer">
-                            <button className="admin-btn admin-btn-secondary" onClick={() => setDeleteConfirm(null)}>
-                                Hủy
-                            </button>
-                            <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(deleteConfirm)}>
-                                Xóa sản phẩm
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
 };

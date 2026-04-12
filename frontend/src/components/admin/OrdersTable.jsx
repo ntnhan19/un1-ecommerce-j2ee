@@ -1,24 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import orderService from '../../services/orderService';
 import {
-    mockOrders,
     formatCurrency,
     getStatusLabel,
     getShippingLabel,
-    getShippingFee,
     getPaymentLabel,
-} from '../../utils/mockAdmin';
+} from '../../utils/formatters';
 import '../../styles/components/Admin.css';
+
+// Hàm tính phí vận chuyển tạm thời (nếu backend không trả về shippingFee)
+const getShippingFee = (method) => {
+    return method === 'express' ? 50000 : 30000;
+};
 
 const STATUS_FILTERS = [
     { key: 'all', label: 'Tất cả' },
-    { key: 'pending', label: 'Chờ xử lý' },
-    { key: 'processing', label: 'Đang xử lý' },
-    { key: 'shipped', label: 'Đang giao' },
-    { key: 'delivered', label: 'Đã giao' },
-    { key: 'cancelled', label: 'Đã hủy' },
+    { key: 'PENDING', label: 'Chờ xử lý' },
+    { key: 'CONFIRMED', label: 'Đã xác nhận' },
+    { key: 'SHIPPING', label: 'Đang giao' },
+    { key: 'DELIVERED', label: 'Đã giao' },
+    { key: 'CANCELED', label: 'Đã hủy' },
 ];
 
-const STATUS_OPTIONS = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
+const STATUS_OPTIONS = ['PENDING', 'CONFIRMED', 'SHIPPING', 'DELIVERED', 'CANCELED'];
 
 // ─── Email Templates ──────────────────────────────────────────────────────────
 const EMAIL_TEMPLATES = [
@@ -27,7 +31,7 @@ const EMAIL_TEMPLATES = [
         label: 'Xác nhận đơn hàng',
         subject: (order) => `[UN1] Xác nhận đơn hàng ${order.id}`,
         body: (order) =>
-            `Kính gửi ${order.customer},\n\nCảm ơn bạn đã đặt hàng tại UN1!\n\nĐơn hàng ${order.id} của bạn đã được xác nhận thành công.\nTổng giá trị: ${formatCurrency(order.total)}\nNgày đặt: ${order.date}\n\nChúng tôi sẽ thông báo khi đơn hàng được giao đến bạn.\n\nTrân trọng,\nĐội ngũ UN1`,
+            `Kính gửi ${order.customer},\n\nCảm ơn bạn đã đặt hàng tại UN1!\n\nĐơn hàng ${order.id} của bạn đã được xác nhận thành công.\nTổng giá trị: ${formatCurrency(order.total)}\nNgày đặt: ${order.date || order.createdAt}\n\nChúng tôi sẽ thông báo khi đơn hàng được giao đến bạn.\n\nTrân trọng,\nĐội ngũ UN1`,
     },
     {
         key: 'shipped',
@@ -82,21 +86,18 @@ const Toast = ({ message, type, onClose }) => (
 
 // ─── Send Mail + Voucher Modal (gộp) ────────────────────────────────────────
 const SendMailModal = ({ order, onClose, onSent }) => {
-    // ── Email state
-    const [tab, setTab] = useState('email'); // 'email' | 'voucher'
+    const [tab, setTab] = useState('email');
     const [selectedTemplate, setSelectedTemplate] = useState('confirm');
     const [subject, setSubject] = useState(() => EMAIL_TEMPLATES[0].subject(order));
     const [body, setBody] = useState(() => EMAIL_TEMPLATES[0].body(order));
 
-    // ── Voucher state
     const [includeVoucher, setIncludeVoucher] = useState(false);
-    const [voucherMode, setVoucherMode] = useState('preset'); // 'preset' | 'custom'
+    const [voucherMode, setVoucherMode] = useState('preset');
     const [selectedPreset, setSelectedPreset] = useState(null);
     const [customCode, setCustomCode] = useState('');
     const [customDiscount, setCustomDiscount] = useState('');
     const [customDesc, setCustomDesc] = useState('');
     const [expiry, setExpiry] = useState('');
-
     const [sending, setSending] = useState(false);
 
     const handleTemplateChange = (key) => {
@@ -117,6 +118,7 @@ const SendMailModal = ({ order, onClose, onSent }) => {
     const handleSend = () => {
         if (!canSend) return;
         setSending(true);
+        // Ở đây đáng lý sẽ gọi api send mail (vd: orderService.sendMail), tạm thời dùng timeout mô phỏng
         setTimeout(() => {
             setSending(false);
             const voucherMsg = includeVoucher && activeVoucher?.code
@@ -134,7 +136,6 @@ const SendMailModal = ({ order, onClose, onSent }) => {
                     <button className="admin-modal-close" onClick={onClose}>✕</button>
                 </div>
                 <div className="admin-modal-body">
-                    {/* Recipient */}
                     <div style={{
                         display: 'flex', alignItems: 'center', gap: '0.75rem',
                         padding: '0.65rem 1rem', background: '#f0f7ff',
@@ -144,7 +145,7 @@ const SendMailModal = ({ order, onClose, onSent }) => {
                             width: 34, height: 34, borderRadius: '50%', background: '#333',
                             color: '#fff', display: 'flex', alignItems: 'center',
                             justifyContent: 'center', fontWeight: 700, fontSize: '0.88rem', flexShrink: 0,
-                        }}>{order.customer.charAt(0).toUpperCase()}</div>
+                        }}>{order.customer?.charAt(0).toUpperCase() || 'U'}</div>
                         <div>
                             <div style={{ fontWeight: 600, color: '#333', fontSize: '0.87rem' }}>{order.customer}</div>
                             <div style={{ color: '#2563eb', fontSize: '0.8rem', fontWeight: 500 }}>{order.email}</div>
@@ -154,7 +155,6 @@ const SendMailModal = ({ order, onClose, onSent }) => {
                         </div>
                     </div>
 
-                    {/* Tabs */}
                     <div style={{ display: 'flex', borderBottom: '2px solid #f0f0f0', marginBottom: '1.1rem' }}>
                         {[
                             { key: 'email', label: 'Nội dung email' },
@@ -175,10 +175,8 @@ const SendMailModal = ({ order, onClose, onSent }) => {
                         ))}
                     </div>
 
-                    {/* ── EMAIL TAB ── */}
                     {tab === 'email' && (
                         <>
-                            {/* Template pills */}
                             <div style={{ marginBottom: '1rem' }}>
                                 <label style={{ display: 'block', fontWeight: 600, fontSize: '0.8rem', color: '#555', marginBottom: '0.45rem' }}>Mẫu email</label>
                                 <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
@@ -198,12 +196,10 @@ const SendMailModal = ({ order, onClose, onSent }) => {
                                     ))}
                                 </div>
                             </div>
-                            {/* Subject */}
                             <div className="admin-form-group" style={{ marginBottom: '0.8rem' }}>
                                 <label>Tiêu đề *</label>
                                 <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Tiêu đề email..." />
                             </div>
-                            {/* Body */}
                             <div className="admin-form-group">
                                 <label>Nội dung *</label>
                                 <textarea
@@ -217,10 +213,8 @@ const SendMailModal = ({ order, onClose, onSent }) => {
                         </>
                     )}
 
-                    {/* ── VOUCHER TAB ── */}
                     {tab === 'voucher' && (
                         <>
-                            {/* Toggle include voucher */}
                             <div style={{
                                 display: 'flex', alignItems: 'center', gap: '0.75rem',
                                 padding: '0.75rem 1rem', background: includeVoucher ? '#fdf4ff' : '#fafafa',
@@ -244,7 +238,6 @@ const SendMailModal = ({ order, onClose, onSent }) => {
 
                             {includeVoucher && (
                                 <>
-                                    {/* Mode tabs */}
                                     <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.85rem' }}>
                                         {[
                                             { key: 'preset', label: '🎫 Voucher có sẵn' },
@@ -263,7 +256,6 @@ const SendMailModal = ({ order, onClose, onSent }) => {
                                         ))}
                                     </div>
 
-                                    {/* Preset list */}
                                     {voucherMode === 'preset' && (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                             {VOUCHER_PRESETS.map((v) => (
@@ -293,7 +285,6 @@ const SendMailModal = ({ order, onClose, onSent }) => {
                                         </div>
                                     )}
 
-                                    {/* Custom voucher */}
                                     {voucherMode === 'custom' && (
                                         <div className="admin-form-grid">
                                             <div className="admin-form-group">
@@ -342,8 +333,9 @@ const SendMailModal = ({ order, onClose, onSent }) => {
 
 // ─── Order Detail Modal ───────────────────────────────────────────────────────
 const OrderDetailModal = ({ order, onClose }) => {
+    const items = order.items || [];
     const shippingFee = order.shippingFee ?? getShippingFee(order.shippingMethod);
-    const itemsTotal = order.items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
+    const itemsTotal = items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
     const grandTotal = itemsTotal + shippingFee;
 
     return (
@@ -362,9 +354,9 @@ const OrderDetailModal = ({ order, onClose }) => {
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.85rem', color: '#555' }}>
                             <div><strong>Họ tên:</strong> {order.customer}</div>
                             <div><strong>Email:</strong> {order.email}</div>
-                            <div><strong>Điện thoại:</strong> {order.phone}</div>
-                            <div><strong>Ngày đặt:</strong> {order.date}</div>
-                            <div style={{ gridColumn: '1 / -1' }}><strong>Địa chỉ:</strong> {order.address}</div>
+                            <div><strong>Điện thoại:</strong> {order.phone || 'Chưa cung cấp'}</div>
+                            <div><strong>Ngày đặt:</strong> {order.date || order.createdAt}</div>
+                            <div style={{ gridColumn: '1 / -1' }}><strong>Địa chỉ:</strong> {order.address || 'Chưa cung cấp'}</div>
                         </div>
                     </div>
 
@@ -382,37 +374,39 @@ const OrderDetailModal = ({ order, onClose }) => {
                     {/* Items */}
                     <div>
                         <div style={{ fontWeight: 600, color: '#333', marginBottom: '0.75rem', fontSize: '0.9rem' }}>
-                            Sản phẩm ({order.items.length})
+                            Sản phẩm ({items.length})
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                            {order.items.map((item, i) => (
-                                <div key={i} style={{
-                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                    padding: '0.75rem', background: '#fafafa', borderRadius: 6,
-                                    border: '1px solid #f0f0f0', fontSize: '0.85rem',
-                                }}>
-                                    <div>
-                                        <div style={{ fontWeight: 600, color: '#333' }}>{item.name}</div>
-                                        <div style={{ color: '#888', marginTop: '0.15rem' }}>
-                                            Size: {item.size} · Màu: {item.color} · SL: {item.quantity || 1}
+                        {items.length === 0 ? (
+                            <div style={{ color: '#888', fontStyle: 'italic', fontSize: '0.85rem' }}>Chưa có thông tin sản phẩm</div>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {items.map((item, i) => (
+                                    <div key={i} style={{
+                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                        padding: '0.75rem', background: '#fafafa', borderRadius: 6,
+                                        border: '1px solid #f0f0f0', fontSize: '0.85rem',
+                                    }}>
+                                        <div>
+                                            <div style={{ fontWeight: 600, color: '#333' }}>{item.name}</div>
+                                            <div style={{ color: '#888', marginTop: '0.15rem' }}>
+                                                Size: {item.size} · Màu: {item.color} · SL: {item.quantity || 1}
+                                            </div>
                                         </div>
+                                        <div style={{ fontWeight: 600, color: '#333' }}>{formatCurrency(item.price)}</div>
                                     </div>
-                                    <div style={{ fontWeight: 600, color: '#333' }}>{formatCurrency(item.price)}</div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
 
                         {/* Subtotal + Shipping + Grand Total */}
                         <div style={{ marginTop: '0.75rem', borderTop: '1px solid #e0e0e0', paddingTop: '0.75rem' }}>
-                            {/* Subtotal */}
                             <div style={{
                                 display: 'flex', justifyContent: 'space-between',
                                 fontSize: '0.85rem', color: '#666', marginBottom: '0.4rem',
                             }}>
-                                <span>Tạm tính ({order.items.length} sản phẩm)</span>
+                                <span>Tạm tính ({items.length} sản phẩm)</span>
                                 <span>{formatCurrency(itemsTotal)}</span>
                             </div>
-                            {/* Shipping fee */}
                             <div style={{
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                                 fontSize: '0.85rem', color: '#666', marginBottom: '0.6rem',
@@ -429,7 +423,6 @@ const OrderDetailModal = ({ order, onClose }) => {
                                 </span>
                                 <span style={{ color: '#555' }}>{formatCurrency(shippingFee)}</span>
                             </div>
-                            {/* Grand total */}
                             <div style={{
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                                 padding: '0.75rem', background: '#f8f8f8', borderRadius: 8,
@@ -452,32 +445,82 @@ const OrderDetailModal = ({ order, onClose }) => {
 
 // ─── Main Table ───────────────────────────────────────────────────────────────
 const OrdersTable = () => {
-    const [orders, setOrders] = useState(mockOrders);
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('all');
     const [search, setSearch] = useState('');
     const [viewOrder, setViewOrder] = useState(null);
     const [sendOrder, setSendOrder] = useState(null);
     const [toast, setToast] = useState(null);
 
+    // Fetch data khi trang vừa render
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    const fetchOrders = async () => {
+        setLoading(true);
+        try {
+            const data = await orderService.getOrders();
+            const list = data.content || data || [];
+
+            // Map backend fields → frontend fields
+            const mapped = list.map(o => ({
+                ...o,
+                customer: o.user?.name || o.user?.email || 'N/A',
+                email: o.user?.email || '',
+                phone: o.user?.phone || o.phone || '',
+                total: o.totalAmount,
+                date: o.orderDate
+                    ? new Date(o.orderDate).toLocaleDateString('vi-VN')
+                    : '',
+                items: (o.items || []).map(item => ({
+                    ...item,
+                    name: item.productName,
+                    size: item.size || 'N/A',
+                    color: item.color || 'N/A',
+                })),
+            }));
+
+            setOrders(mapped);
+        } catch (error) {
+            console.error("Lỗi lấy danh sách đơn hàng:", error);
+            showToast("Không thể tải danh sách đơn hàng", "error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const showToast = (message, type = 'success') => {
         setToast({ message, type });
         setTimeout(() => setToast(null), 4000);
     };
 
-    const filtered = orders.filter((o) => {
+    const filtered = (orders || []).filter((o) => {
         const matchStatus = statusFilter === 'all' || o.status === statusFilter;
         const matchSearch =
-            o.id.toLowerCase().includes(search.toLowerCase()) ||
-            o.customer.toLowerCase().includes(search.toLowerCase()) ||
-            o.email.toLowerCase().includes(search.toLowerCase());
+            (o.id && o.id.toString().toLowerCase().includes(search.toLowerCase())) ||
+            (o.customer && o.customer.toLowerCase().includes(search.toLowerCase())) ||
+            (o.email && o.email.toLowerCase().includes(search.toLowerCase()));
         return matchStatus && matchSearch;
     });
 
-    const handleStatusChange = (orderId, newStatus) => {
-        setOrders((prev) =>
-            prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
-        );
+    const handleStatusChange = async (orderId, newStatus) => {
+        try {
+            await orderService.updateOrderStatus(orderId, newStatus);
+            setOrders((prev) =>
+                prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+            );
+            showToast("Cập nhật trạng thái thành công");
+        } catch (error) {
+            console.error(error);
+            showToast("Cập nhật trạng thái thất bại", "error");
+        }
     };
+
+    if (loading) {
+        return <div style={{ padding: '3rem', textAlign: 'center', color: '#666' }}>⏳ Đang tải danh sách đơn hàng...</div>;
+    }
 
     return (
         <div>
@@ -533,64 +576,66 @@ const OrdersTable = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                filtered.map((order) => (
-                                    <tr
-                                        key={order.id}
-                                        onClick={() => setViewOrder(order)}
-                                        style={{ cursor: 'pointer' }}
-                                        className="admin-table-row-clickable"
-                                    >
-                                        <td>
-                                            <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#333', fontSize: '0.82rem' }}>
-                                                {order.id}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div style={{ fontWeight: 500, color: '#333' }}>{order.customer}</div>
-                                            <div className="admin-table-sub" style={{ color: '#2563eb' }}>{order.email}</div>
-                                            <div className="admin-table-sub">{order.phone}</div>
-                                        </td>
-                                        <td style={{ color: '#666', fontSize: '0.82rem' }}>{order.date}</td>
-                                        <td>
-                                            <div style={{ fontSize: '0.82rem', color: '#555' }}>
-                                                {order.items.length} sản phẩm
-                                            </div>
-                                            <div className="admin-table-sub">
-                                                {order.items[0]?.name.substring(0, 20)}
-                                                {order.items[0]?.name.length > 20 ? '...' : ''}
-                                            </div>
-                                        </td>
-                                        <td style={{ fontWeight: 600, color: '#333' }}>
-                                            {formatCurrency(order.total)}
-                                        </td>
-                                        <td style={{ fontSize: '0.82rem', color: '#555' }}>
-                                            {getShippingLabel(order.shippingMethod)}
-                                        </td>
-                                        <td onClick={(e) => e.stopPropagation()}>
-                                            <select
-                                                className="status-select"
-                                                value={order.status}
-                                                onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                            >
-                                                {STATUS_OPTIONS.map((s) => (
-                                                    <option key={s} value={s}>{getStatusLabel(s)}</option>
-                                                ))}
-                                            </select>
-                                        </td>
-                                        <td onClick={(e) => e.stopPropagation()}>
-                                            <div className="table-actions">
-                                                {/* Send email + voucher */}
-                                                <button
-                                                    className="admin-btn-icon"
-                                                    title="Gửi mail / Tặng voucher"
-                                                    onClick={() => setSendOrder(order)}
+                                filtered.map((order) => {
+                                    const items = order.items || [];
+                                    const firstItemName = items.length > 0 ? items[0].name : 'N/A';
+                                    return (
+                                        <tr
+                                            key={order.id}
+                                            onClick={() => setViewOrder(order)}
+                                            style={{ cursor: 'pointer' }}
+                                            className="admin-table-row-clickable"
+                                        >
+                                            <td>
+                                                <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#333', fontSize: '0.82rem' }}>
+                                                    {order.id}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div style={{ fontWeight: 500, color: '#333' }}>{order.customer}</div>
+                                                <div className="admin-table-sub" style={{ color: '#2563eb' }}>{order.email}</div>
+                                                <div className="admin-table-sub">{order.phone}</div>
+                                            </td>
+                                            <td style={{ color: '#666', fontSize: '0.82rem' }}>{order.date || order.createdAt}</td>
+                                            <td>
+                                                <div style={{ fontSize: '0.82rem', color: '#555' }}>
+                                                    {items.length} sản phẩm
+                                                </div>
+                                                <div className="admin-table-sub" style={{ maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {firstItemName}
+                                                </div>
+                                            </td>
+                                            <td style={{ fontWeight: 600, color: '#333' }}>
+                                                {formatCurrency(order.total)}
+                                            </td>
+                                            <td style={{ fontSize: '0.82rem', color: '#555' }}>
+                                                {getShippingLabel(order.shippingMethod)}
+                                            </td>
+                                            <td onClick={(e) => e.stopPropagation()}>
+                                                <select
+                                                    className="status-select"
+                                                    value={order.status}
+                                                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
                                                 >
-                                                    <i className="fa-solid fa-envelope">Xác nhận email</i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                                    {STATUS_OPTIONS.map((s) => (
+                                                        <option key={s} value={s}>{getStatusLabel(s)}</option>
+                                                    ))}
+                                                </select>
+                                            </td>
+                                            <td onClick={(e) => e.stopPropagation()}>
+                                                <div className="table-actions">
+                                                    <button
+                                                        className="admin-btn-icon"
+                                                        title="Gửi mail / Tặng voucher"
+                                                        onClick={() => setSendOrder(order)}
+                                                    >
+                                                        <i className="fa-solid fa-envelope">Xác nhận email</i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>

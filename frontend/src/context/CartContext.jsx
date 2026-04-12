@@ -1,120 +1,108 @@
 // src/context/CartContext.jsx
-import { createContext, useState, useEffect, useMemo } from "react";
+import { createContext, useState, useEffect, useCallback } from "react";
+import axiosInstance from "../api/axiosInstance";
 
 export const CartContext = createContext(null);
 
-// Helper function to parse price from string or return number
-const parsePrice = (price) => {
-  if (typeof price === 'number') return price;
-  if (typeof price === 'string') {
-    // Remove "VND" and spaces, then remove dots (thousand separators in Vietnamese)
-    const cleaned = price.replace(/VND/gi, '').replace(/\s/g, '').replace(/\./g, '');
-    const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? 0 : parsed;
-  }
-  return 0;
-};
-
-// Safe JSON parse with fallback
-const safeParseJSON = (key, fallback) => {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : fallback;
-  } catch {
-    return fallback;
-  }
-};
-
 export const CartProvider = ({ children }) => {
-  // Lazy init từ localStorage — đọc 1 lần duy nhất khi mount
-  const [cartItems, setCartItems] = useState(() => safeParseJSON('cart_items', []));
-  const [coupon, setCoupon] = useState(() => safeParseJSON('cart_coupon', ''));
+  const [cartItems, setCartItems] = useState([]);   // data từ server
+  const [loading, setLoading] = useState(false);
+  const [coupon, setCoupon] = useState('');
 
-  // Persist cartItems xuống localStorage mỗi khi thay đổi
-  useEffect(() => {
-    localStorage.setItem('cart_items', JSON.stringify(cartItems));
-  }, [cartItems]);
-
-  // Persist coupon xuống localStorage mỗi khi thay đổi
-  useEffect(() => {
-    localStorage.setItem('cart_coupon', JSON.stringify(coupon));
-  }, [coupon]);
-
-  const subtotal = useMemo(
-    () => cartItems.reduce((s, i) => s + parsePrice(i.price) * i.quantity, 0),
-    [cartItems]
-  );
-
-  const totalItems = useMemo(
-    () => cartItems.reduce((sum, item) => sum + item.quantity, 0),
-    [cartItems]
-  );
-
-  // Discount reactive: tính lại mỗi khi subtotal hoặc coupon thay đổi
-  // Không lưu discount vào state để tránh stale value khi thêm/xóa sản phẩm sau khi apply coupon
-  const discount = useMemo(() => {
-    if (coupon === 'SAVE10') return Math.round(subtotal * 0.1);
-    return 0;
-  }, [coupon, subtotal]);
-
-  const applyCoupon = (code) => {
-    setCoupon(code);
-  };
-
-  const updateQuantity = (id, quantity) => {
-    setCartItems(items =>
-      items.map(i =>
-        i.id === id ? { ...i, quantity: Math.max(1, quantity) } : i
-      )
-    );
-  };
-
-  const updateItemAttributes = (id, attributes) => {
-    setCartItems(items =>
-      items.map(i =>
-        i.id === id ? { ...i, ...attributes } : i
-      )
-    );
-  };
-
-  const removeFromCart = (id) => {
-    setCartItems(items => items.filter(i => i.id !== id));
-  };
-
-  const addToCart = (product) => {
-    setCartItems(items => {
-      const found = items.find(i => i.id === product.id);
-      if (found) {
-        return items.map(i =>
-          i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
+  // ── Fetch cart từ server ──────────────────────────────────────────────────
+  const fetchCart = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axiosInstance.get('/api/cart');
+      // items trả về từ CartResponse
+      setCartItems(res.data?.data?.items || []);
+    } catch (err) {
+      // Nếu chưa login thì cart rỗng, không cần báo lỗi
+      if (err.response?.status !== 401) {
+        console.error('Failed to fetch cart:', err);
       }
-      return [...items, { ...product, quantity: 1 }];
-    });
+      setCartItems([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Load cart khi mount (user đã login)
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
+
+  // ── Add to cart ───────────────────────────────────────────────────────────
+  const addToCart = async (product, quantity = 1, size = 'M', color = 'Đen') => {
+    try {
+      const res = await axiosInstance.post('/api/cart/items', {
+        productId: product.id,
+        quantity,
+        size,
+        color,
+      });
+      setCartItems(res.data?.data?.items || []);
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Không thể thêm vào giỏ hàng';
+      throw new Error(msg); // để UI bắt & hiển thị
+    }
   };
 
+  // ── Update quantity ───────────────────────────────────────────────────────
+  const updateQuantity = async (cartItemId, quantity) => {
+    try {
+      const res = await axiosInstance.patch(`/api/cart/items/${cartItemId}`, { quantity });
+      setCartItems(res.data?.data?.items || []);
+    } catch (err) {
+      console.error('Update quantity failed:', err);
+    }
+  };
+
+  // ── Remove item ───────────────────────────────────────────────────────────
+  const removeFromCart = async (cartItemId) => {
+    try {
+      const res = await axiosInstance.delete(`/api/cart/items/${cartItemId}`);
+      setCartItems(res.data?.data?.items || []);
+    } catch (err) {
+      console.error('Remove item failed:', err);
+    }
+  };
+
+  // ── Clear cart (gọi sau khi đặt hàng thành công) ─────────────────────────
   const clearCart = () => {
+    // Backend đã clear trong OrderService, chỉ cần reset state
     setCartItems([]);
     setCoupon('');
-    localStorage.removeItem('cart_items');
-    localStorage.removeItem('cart_coupon');
   };
+
+  // ── Tính toán ─────────────────────────────────────────────────────────────
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + Number(item.price) * item.quantity, 0
+  );
+
+  const discount = coupon === 'SAVE10' ? Math.round(subtotal * 0.1) : 0;
+
+  const total = Math.max(subtotal - discount, 0);
+
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const applyCoupon = (code) => setCoupon(code);
 
   return (
     <CartContext.Provider value={{
       cartItems,
+      loading,
       subtotal,
       discount,
-      total: Math.max(subtotal - discount, 0),
+      total,
       totalItems,
       coupon,
-      applyCoupon,
-      updateQuantity,
-      updateItemAttributes,
-      removeFromCart,
+      fetchCart,
       addToCart,
+      updateQuantity,
+      removeFromCart,
       clearCart,
-      parsePrice // Export helper for components
+      applyCoupon,
     }}>
       {children}
     </CartContext.Provider>

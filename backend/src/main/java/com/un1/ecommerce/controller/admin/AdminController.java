@@ -1,8 +1,13 @@
 package com.un1.ecommerce.controller.admin;
 
+import com.un1.ecommerce.dto.ColorDto;
+import com.un1.ecommerce.dto.request.ProductMeasurementsRequest;
 import com.un1.ecommerce.dto.request.ProductRequest;
+import com.un1.ecommerce.dto.request.ProductVariantRequest;
 import com.un1.ecommerce.dto.response.ProductResponse;
+import com.un1.ecommerce.entity.Gender;
 import com.un1.ecommerce.entity.OrderStatus;
+import com.un1.ecommerce.entity.ProductType;
 import com.un1.ecommerce.service.CategoryService;
 import com.un1.ecommerce.service.OrderService;
 import com.un1.ecommerce.service.ProductService;
@@ -14,6 +19,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
@@ -24,55 +32,7 @@ public class AdminController {
     private final UserService userService;
     private final CategoryService categoryService;
 
-    @InitBinder
-    @SuppressWarnings("unchecked")
-    public void initBinder(org.springframework.web.bind.WebDataBinder binder) {
-        binder.registerCustomEditor(java.util.List.class, "imageUrls", new java.beans.PropertyEditorSupport() {
-            @Override
-            public void setAsText(String text) {
-                if (text == null || text.trim().isEmpty()) {
-                    setValue(new java.util.ArrayList<String>());
-                } else {
-                    setValue(new java.util.ArrayList<String>(java.util.Arrays.asList(text.split("\\s*,\\s*"))));
-                }
-            }
-            @Override
-            public String getAsText() {
-                java.util.List<String> list = (java.util.List<String>) getValue();
-                return list == null ? "" : String.join(", ", list);
-            }
-        });
-        binder.registerCustomEditor(java.util.List.class, "colors", new java.beans.PropertyEditorSupport() {
-            @Override
-            public void setAsText(String text) {
-                if (text == null || text.trim().isEmpty()) {
-                    setValue(new java.util.ArrayList<String>());
-                } else {
-                    setValue(new java.util.ArrayList<String>(java.util.Arrays.asList(text.split("\\s*,\\s*"))));
-                }
-            }
-            @Override
-            public String getAsText() {
-                java.util.List<String> list = (java.util.List<String>) getValue();
-                return list == null ? "" : String.join(", ", list);
-            }
-        });
-        binder.registerCustomEditor(java.util.List.class, "sizes", new java.beans.PropertyEditorSupport() {
-            @Override
-            public void setAsText(String text) {
-                if (text == null || text.trim().isEmpty()) {
-                    setValue(new java.util.ArrayList<String>());
-                } else {
-                    setValue(new java.util.ArrayList<String>(java.util.Arrays.asList(text.split("\\s*,\\s*"))));
-                }
-            }
-            @Override
-            public String getAsText() {
-                java.util.List<String> list = (java.util.List<String>) getValue();
-                return list == null ? "" : String.join(", ", list);
-            }
-        });
-    }
+    // ─── Dashboard ───────────────────────────────────────────────────────────
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
@@ -88,7 +48,8 @@ public class AdminController {
         return "admin/login";
     }
 
-    // --- Product Management ---
+    // ─── Product Management ──────────────────────────────────────────────────
+
     @GetMapping("/products")
     public String listProducts(Model model) {
         model.addAttribute("products", productService.getAllProductsList());
@@ -99,13 +60,44 @@ public class AdminController {
     public String showProductForm(Model model) {
         model.addAttribute("product", new ProductRequest());
         model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("productTypes", ProductType.values());
+        model.addAttribute("genders", Gender.values());
         return "admin/product-form";
     }
 
     @GetMapping("/products/edit/{id}")
     public String editProduct(@PathVariable Long id, Model model) {
         ProductResponse product = productService.getProductById(id);
-        // Map ProductResponse to ProductRequest for the form
+
+        List<ProductVariantRequest> variantRequests = null;
+        if (product.getVariants() != null) {
+            variantRequests = product.getVariants().stream()
+                    .map(v -> {
+                        ProductMeasurementsRequest measurements = null;
+                        if (v.getMeasurements() != null) {
+                            measurements = ProductMeasurementsRequest.builder()
+                                    .chestWidth(v.getMeasurements().getChestWidth())
+                                    .shoulderWidth(v.getMeasurements().getShoulderWidth())
+                                    .waistWidth(v.getMeasurements().getWaistWidth())
+                                    .hipWidth(v.getMeasurements().getHipWidth())
+                                    .sleeveLength(v.getMeasurements().getSleeveLength())
+                                    .bodyLength(v.getMeasurements().getBodyLength())
+                                    .thighWidth(v.getMeasurements().getThighWidth())
+                                    .inseam(v.getMeasurements().getInseam())
+                                    .build();
+                        }
+                        return ProductVariantRequest.builder()
+                                .id(v.getId())
+                                .size(v.getSize())
+                                .colorName(v.getColorName())
+                                .colorHex(v.getColorHex())
+                                .stock(v.getStock())
+                                .measurements(measurements)
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+        }
+
         ProductRequest request = ProductRequest.builder()
                 .name(product.getName())
                 .price(product.getPrice())
@@ -115,21 +107,54 @@ public class AdminController {
                 .imageUrls(product.getImageUrls())
                 .colors(product.getColors())
                 .sizes(product.getSizes())
+                .variants(variantRequests)
+                .featured(product.getFeatured())
+                .productType(product.getProductType())
+                .gender(product.getGender())
                 .build();
+
         model.addAttribute("product", request);
         model.addAttribute("productId", id);
         model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("productTypes", ProductType.values());
+        model.addAttribute("genders", Gender.values());
         return "admin/product-form";
     }
 
     @PostMapping("/products/save")
-    public String saveProduct(@Valid @ModelAttribute("product") ProductRequest request, 
-                               BindingResult result, 
-                               @RequestParam(value = "id", required = false) Long id,
-                               Model model) {
+    public String saveProduct(
+            @Valid @ModelAttribute("product") ProductRequest request,
+            BindingResult result,
+            @RequestParam(value = "id", required = false) Long id,
+            Model model) {
+
         if (result.hasErrors()) {
             model.addAttribute("categories", categoryService.getAllCategories());
+            model.addAttribute("productTypes", ProductType.values());
+            model.addAttribute("genders", Gender.values());
             return "admin/product-form";
+        }
+
+        // Derive colors và sizes từ variants nếu chưa có
+        if (request.getVariants() != null && !request.getVariants().isEmpty()) {
+            if (request.getColors() == null || request.getColors().isEmpty()) {
+                List<ColorDto> derivedColors = request.getVariants().stream()
+                        .collect(Collectors.toMap(
+                                ProductVariantRequest::getColorName,
+                                v -> new ColorDto(v.getColorName(), v.getColorHex()),
+                                (existing, duplicate) -> existing))
+                        .values().stream()
+                        .collect(Collectors.toList());
+                request.setColors(derivedColors);
+            }
+
+            if (request.getSizes() == null || request.getSizes().isEmpty()) {
+                List<String> derivedSizes = request.getVariants().stream()
+                        .map(ProductVariantRequest::getSize)
+                        .distinct()
+                        .collect(Collectors.toList());
+                request.setSizes(derivedSizes);
+            }
         }
 
         if (id != null) {
@@ -146,7 +171,8 @@ public class AdminController {
         return "redirect:/admin/products";
     }
 
-    // --- Order Management ---
+    // ─── Order Management ────────────────────────────────────────────────────
+
     @GetMapping("/orders")
     public String listOrders(Model model) {
         model.addAttribute("orders", orderService.getAllOrders());
@@ -160,14 +186,16 @@ public class AdminController {
         return "redirect:/admin/orders";
     }
 
-    // --- User Management ---
+    // ─── User Management ─────────────────────────────────────────────────────
+
     @GetMapping("/users")
     public String listUsers(Model model) {
         model.addAttribute("users", userService.getAllUsers());
         return "admin/users";
     }
 
-    // --- Category Management ---
+    // ─── Category Management ─────────────────────────────────────────────────
+
     @GetMapping("/categories")
     public String listCategories(Model model) {
         model.addAttribute("categories", categoryService.getAllCategories());
@@ -187,9 +215,10 @@ public class AdminController {
     }
 
     @PostMapping("/categories/save")
-    public String saveCategory(@RequestParam(required = false) Long id, 
-                               @RequestParam String name, 
-                               @RequestParam(required = false) String description) {
+    public String saveCategory(
+            @RequestParam(required = false) Long id,
+            @RequestParam String name,
+            @RequestParam(required = false) String description) {
         com.un1.ecommerce.entity.Category category;
         if (id != null) {
             category = categoryService.getCategoryById(id);

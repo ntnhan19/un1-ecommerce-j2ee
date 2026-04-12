@@ -8,6 +8,7 @@ import ShippingMethod from '../components/checkout/ShippingMethod';
 import PaymentMethod from '../components/checkout/PaymentMethod';
 import OrderSummary from '../components/checkout/OrderSummary';
 import '../styles/components/Checkout.css';
+import axiosInstance from '../api/axiosInstance';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -104,36 +105,29 @@ const Checkout = () => {
   };
 
   const handleSubmit = async () => {
-    if (validateStep(currentStep)) {
-      // Prepare order items from cart
-      const orderItems = cartItems.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: parsePrice(item.price),
-        quantity: item.quantity,
-        image: item.image,
-        color: item.color || 'Đen',
-        size: item.size || 'M'
-      }));
+    if (!validateStep(currentStep)) return;
 
-      const orderData = {
-        shippingInfo: formData,
-        shippingMethod,
-        paymentMethod,
-        shippingCost: getShippingCost(),
-        totalAmount: total + getShippingCost(),
-        items: orderItems
-      };
+    try {
+      const fullAddress = [
+        formData.detailAddress,
+        formData.ward,
+        formData.district,
+        formData.province
+      ].filter(Boolean).join(', ');
 
-      // Add order to context
-      const newOrder = addOrder(orderData);
-      console.log('Order created:', newOrder);
+      // Chỉ gửi address + phone — backend tự đọc cart từ DB
+      const response = await axiosInstance.post('/api/orders', {
+        address: fullAddress,
+        phone: formData.phone,
+      });
 
-      // Clear cart after successful order
-      clearCart();
+      const newOrder = response.data?.data || response.data;
 
-      // Redirect to order success page
+      clearCart();  // Reset state frontend
       navigate(`/order-success/${newOrder.id}`);
+    } catch (error) {
+      console.error('Đặt hàng thất bại:', error);
+      alert('Đặt hàng thất bại: ' + (error.response?.data?.message || 'Lỗi hệ thống'));
     }
   };
 
@@ -174,7 +168,7 @@ const Checkout = () => {
       case 3:
         return (
           <div className="step-content review-step">
-            <h2 className="section-title">XÁC NHẬN ĐỐN HÀNG</h2>
+            <h2 className="section-title">XÁC NHẬN ĐƠN HÀNG</h2>
 
             <div className="review-section">
               <h3>Thông tin giao hàng</h3>

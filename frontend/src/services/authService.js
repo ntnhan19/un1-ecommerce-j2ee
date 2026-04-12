@@ -41,6 +41,10 @@ const authService = {
     localStorage.removeItem('user');
   },
 
+  setCurrentUser: (user) => {
+    localStorage.setItem('user', JSON.stringify(user));
+  },
+
   getCurrentUser: () => {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
