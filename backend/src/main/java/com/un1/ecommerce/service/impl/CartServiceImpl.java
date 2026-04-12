@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,14 +36,18 @@ public class CartServiceImpl implements CartService {
 
         Cart cart = cartRepository.findByUserId(user.getId())
                 .orElseGet(() -> {
-                    Cart newCart = new Cart();
-                    newCart.setUser(user);
+                    Cart newCart = Cart.builder().user(user).build();
                     return cartRepository.save(newCart);
                 });
 
-        // Check if item already exists in cart
+        String incomingSize = request.getSize() != null ? request.getSize() : "M";
+        String incomingColor = request.getColor() != null ? request.getColor() : "Đen";
+
+        // Tìm item trùng productId + size + color (cùng variant mới tính là trùng)
         Optional<CartItem> existingItemOpt = cart.getCartItems().stream()
-                .filter(item -> item.getProduct().getId().equals(product.getId()))
+                .filter(item -> item.getProduct().getId().equals(product.getId())
+                        && Objects.equals(item.getSize(), incomingSize)
+                        && Objects.equals(item.getColor(), incomingColor))
                 .findFirst();
 
         int newTotalQuantity = request.getQuantity();
@@ -49,32 +55,31 @@ public class CartServiceImpl implements CartService {
             newTotalQuantity += existingItemOpt.get().getQuantity();
         }
 
-        // CRITICAL: Stock check limit
         if (newTotalQuantity > product.getStock()) {
             throw new BadRequestException("Insufficient stock");
         }
 
         if (existingItemOpt.isPresent()) {
-            CartItem existingItem = existingItemOpt.get();
-            existingItem.setQuantity(newTotalQuantity);
+            existingItemOpt.get().setQuantity(newTotalQuantity);
         } else {
-            CartItem newItem = new CartItem();
-            newItem.setCart(cart);
-            newItem.setProduct(product);
-            newItem.setQuantity(request.getQuantity());
+            CartItem newItem = CartItem.builder()
+                    .cart(cart)
+                    .product(product)
+                    .quantity(request.getQuantity())
+                    .size(incomingSize)
+                    .color(incomingColor)
+                    .build();
             cart.getCartItems().add(newItem);
         }
 
-        Cart savedCart = cartRepository.save(cart);
-        return mapToResponse(savedCart);
+        return mapToResponse(cartRepository.save(cart));
     }
 
     @Override
     public CartResponse getCart(User user) {
         Cart cart = cartRepository.findByUserId(user.getId())
                 .orElseGet(() -> {
-                    Cart newCart = new Cart();
-                    newCart.setUser(user);
+                    Cart newCart = Cart.builder().user(user).build();
                     return cartRepository.save(newCart);
                 });
         return mapToResponse(cart);
@@ -89,24 +94,70 @@ public class CartServiceImpl implements CartService {
         });
     }
 
-    private CartResponse mapToResponse(Cart cart) {
-        BigDecimal totalAmount = BigDecimal.ZERO;
+    // ── Thêm mới: update số lượng 1 item ──────────────────────────────────────
+    @Override
+    @Transactional
+    public CartResponse updateCartItem(Long cartItemId, Integer quantity, User user) {
+        Cart cart = cartRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
 
-        var itemsRes = cart.getCartItems().stream().map(item -> {
-            BigDecimal subTotal = item.getProduct().getPrice().multiply(new BigDecimal(item.getQuantity()));
-            return CartResponse.CartItemResponse.builder()
-                    .id(item.getId())
-                    .productId(item.getProduct().getId())
-                    .productName(item.getProduct().getName())
-                    .quantity(item.getQuantity())
-                    .price(item.getProduct().getPrice())
-                    .subTotal(subTotal)
-                    .build();
-        }).collect(Collectors.toList());
+        CartItem item = cart.getCartItems().stream()
+                .filter(i -> i.getId().equals(cartItemId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Cart item not found"));
 
-        for (var item : itemsRes) {
-            totalAmount = totalAmount.add(item.getSubTotal());
+        if (quantity <= 0) {
+            cart.getCartItems().remove(item);
+        } else {
+            if (quantity > item.getProduct().getStock()) {
+                throw new BadRequestException("Insufficient stock");
+            }
+            item.setQuantity(quantity);
         }
+
+        return mapToResponse(cartRepository.save(cart));
+    }
+
+    // ── Thêm mới: xóa 1 item ──────────────────────────────────────────────────
+    @Override
+    @Transactional
+    public CartResponse removeCartItem(Long cartItemId, User user) {
+        Cart cart = cartRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+
+        cart.getCartItems().removeIf(i -> i.getId().equals(cartItemId));
+        return mapToResponse(cartRepository.save(cart));
+    }
+
+    private CartResponse mapToResponse(Cart cart) {
+        List<CartResponse.CartItemResponse> itemsRes = cart.getCartItems().stream()
+                .map(item -> {
+                    BigDecimal subTotal = item.getProduct().getPrice()
+                            .multiply(new BigDecimal(item.getQuantity()));
+
+                    // Product có imageUrls (List<String>), lấy ảnh đầu tiên
+                    String firstImage = (item.getProduct().getImageUrls() != null
+                            && !item.getProduct().getImageUrls().isEmpty())
+                                    ? item.getProduct().getImageUrls().get(0)
+                                    : null;
+
+                    return CartResponse.CartItemResponse.builder()
+                            .id(item.getId())
+                            .productId(item.getProduct().getId())
+                            .productName(item.getProduct().getName())
+                            .productImage(firstImage)
+                            .quantity(item.getQuantity())
+                            .price(item.getProduct().getPrice())
+                            .subTotal(subTotal)
+                            .size(item.getSize())
+                            .color(item.getColor())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        BigDecimal totalAmount = itemsRes.stream()
+                .map(CartResponse.CartItemResponse::getSubTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return CartResponse.builder()
                 .id(cart.getId())

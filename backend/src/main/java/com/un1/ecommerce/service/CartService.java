@@ -6,6 +6,12 @@ import com.un1.ecommerce.entity.User;
 
 public interface CartService {
     CartResponse addToCart(CartItemRequest request, User user);
+
     CartResponse getCart(User user);
+
     void clearCart(User user);
+
+    CartResponse updateCartItem(Long cartItemId, Integer quantity, User user);
+
+    CartResponse removeCartItem(Long cartItemId, User user);
 }

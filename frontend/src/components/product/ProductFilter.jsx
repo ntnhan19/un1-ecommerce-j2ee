@@ -1,12 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import productService from "../../services/productService";
 import "../../styles/components/product-filter.css";
 
-const ProductFilter = ({ category, selectedFilters, onFilterChange }) => {
+const ProductFilter = ({ category, selectedFilters, onFilterChange, onReset }) => {
   const [expandedSections, setExpandedSections] = useState({
     collection: true,
-    seller: true,
-    type: true,
+    category: true,   // đổi tên section từ "type" → "category" cho đúng nghĩa
   });
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // Fetch danh sách category từ backend
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await productService.getCategories();
+        setCategories(data || []);
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const toggleSection = (section) => {
     setExpandedSections((prev) => ({
@@ -15,100 +32,99 @@ const ProductFilter = ({ category, selectedFilters, onFilterChange }) => {
     }));
   };
 
-  const productTypes = [
-    "ÁO KHOÁC",
-    "ÁO PHAO",
-    "ÁO THUN",
-    "ÁO SƠ MI",
-    "QUẦN JEANS",
-    "QUẦN DA",
-  ];
-
   return (
     <aside className="product-filter">
       {/* Filter Header */}
       <div className="filter-header">
         <h3>FILTER</h3>
-        <span className="filter-reset">↻</span>
+        <span
+          className="filter-reset"
+          onClick={onReset}
+          title="Xóa bộ lọc"
+          style={{ cursor: 'pointer' }}
+        >
+          ↻
+        </span>
       </div>
 
-      {/* New Collection Filter */}
+      {/* Featured / New Collection */}
       <div className="filter-section">
         <div
           className="filter-title"
           onClick={() => toggleSection("collection")}
         >
-          <span>NEW COLLECTION</span>
+          <span>NỔI BẬT</span>
           <span className="toggle-icon">
             {expandedSections.collection ? "−" : "+"}
           </span>
         </div>
         {expandedSections.collection && (
           <div className="filter-options">
-            {/* Checkbox Option */}
             <label className="filter-checkbox">
               <input
                 type="checkbox"
-                checked={selectedFilters.collection === "new"}
-                onChange={() => onFilterChange("collection", "new")}
+                checked={selectedFilters.featured === true}
+                onChange={() => onFilterChange("featured",
+                  selectedFilters.featured === true ? null : true
+                )}
               />
-              <span>Hàng mới nhất</span>
+              <span>Hàng nổi bật</span>
             </label>
           </div>
         )}
       </div>
 
-      {/* Best Seller Filter */}
+      {/* Category Filter — từ API */}
       <div className="filter-section">
-        <div className="filter-title" onClick={() => toggleSection("seller")}>
-          <span>BEST SELLER</span>
-          <span className="toggle-icon">
-            {expandedSections.seller ? "−" : "+"}
-          </span>
-        </div>
-        {expandedSections.seller && (
-          <div className="filter-options">
-            <label className="filter-checkbox">
-              <input
-                type="checkbox"
-                checked={selectedFilters.seller === "bestseller"}
-                onChange={() => onFilterChange("seller", "bestseller")}
-              />
-              <span>Bán chạy nhất</span>
-            </label>
-          </div>
-        )}
-      </div>
-
-      {/* Product Type Filter */}
-      <div className="filter-section">
-        <div className="filter-title" onClick={() => toggleSection("type")}>
+        <div
+          className="filter-title"
+          onClick={() => toggleSection("category")}
+        >
           <span>LOẠI SẢN PHẨM</span>
           <span className="toggle-icon">
-            {expandedSections.type ? "−" : "+"}
+            {expandedSections.category ? "−" : "+"}
           </span>
         </div>
-        {expandedSections.type && (
+        {expandedSections.category && (
           <div className="filter-options">
-            {productTypes.map((type) => (
-              <label key={type} className="filter-checkbox">
-                <input
-                  type="checkbox"
-                  checked={selectedFilters.type === type}
-                  onChange={() => onFilterChange("type", type)}
-                />
-                <span>{type}</span>
-              </label>
-            ))}
+            {loadingCategories ? (
+              <p style={{ fontSize: '13px', color: '#999', padding: '8px 0' }}>
+                Đang tải...
+              </p>
+            ) : categories.length === 0 ? (
+              <p style={{ fontSize: '13px', color: '#999', padding: '8px 0' }}>
+                Không có danh mục
+              </p>
+            ) : (
+              categories.map((cat) => (
+                <label key={cat.id} className="filter-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedFilters.categoryId === cat.id}
+                    onChange={() =>
+                      onFilterChange(
+                        "categoryId",
+                        selectedFilters.categoryId === cat.id ? null : cat.id
+                      )
+                    }
+                  />
+                  <span>{cat.name}</span>
+                </label>
+              ))
+            )}
           </div>
         )}
       </div>
 
-      {/* View All Link */}
+      {/* View All */}
       <div className="filter-footer">
-        <a href="#" className="view-all-link">
+        <span
+          className="view-all-link"
+          onClick={onReset}
+          style={{ cursor: 'pointer' }}
+        >
           XEM TẤT CẢ →
-        </a>
+        </span>
       </div>
     </aside>
   );

@@ -1,102 +1,1144 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/header :: header}"></head>
+
+<head th:replace="~{fragments/header :: header}">
+    <style>
+        /* === Variant Editor Styles === */
+        .variant-editor {
+            margin-top: 2rem;
+        }
+
+        .variant-editor .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e293b;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .color-palette-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .color-chip {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .color-chip.active {
+            border-color: #1e293b;
+            box-shadow: 0 0 0 3px white, 0 0 0 5px #1e293b;
+        }
+
+        .color-chip:hover {
+            transform: scale(1.15);
+        }
+
+        .variant-table-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .variant-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .variant-table thead {
+            background: #f8fafc;
+        }
+
+        .variant-table th {
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
+        .variant-table td {
+            padding: 8px 14px;
+            border-top: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+
+        .variant-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        .variant-table input[type=number],
+        .variant-table input[type=text] {
+            width: 100%;
+            padding: 5px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            background: white;
+            color: #1e293b;
+            transition: border-color 0.15s;
+        }
+
+        .variant-table input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .variant-table input.narrow {
+            max-width: 80px;
+        }
+
+        .variant-table .color-dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        .badge-size {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .btn-add-color {
+            border: 1.5px dashed #94a3b8;
+            background: transparent;
+            color: #64748b;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-add-color:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .btn-remove-variant {
+            border: none;
+            background: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            line-height: 1;
+            transition: background 0.15s;
+        }
+
+        .btn-remove-variant:hover {
+            background: #fef2f2;
+        }
+
+        .measurement-cell {
+            min-width: 80px;
+        }
+
+        .stock-input {
+            max-width: 90px !important;
+        }
+
+        /* Color/Size management UI */
+        .color-manager {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .color-entry {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .color-entry input {
+            height: 32px;
+        }
+
+        .color-preview-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .size-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .size-tag .btn-rm {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #94a3b8;
+            padding: 0;
+            line-height: 1;
+            font-size: 16px;
+        }
+
+        .size-tag .btn-rm:hover {
+            color: #ef4444;
+        }
+
+        .size-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .add-size-btn {
+            flex-shrink: 0;
+        }
+
+        /* Tab navigation for Basic/Variants */
+        .form-tab-bar {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-tab {
+            padding: 10px 22px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #64748b;
+            border: none;
+            background: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.15s;
+        }
+
+        .form-tab.active {
+            color: #1e40af;
+            border-bottom-color: #1e40af;
+        }
+
+        .form-tab:hover:not(.active) {
+            color: #1e293b;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .helper-text {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 3px;
+        }
+
+        .field-group {
+            margin-bottom: 1.1rem;
+        }
+
+        .field-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #374151;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        /* Hidden inputs container */
+        #variantHiddenInputs {
+            display: none;
+        }
+
+        /* Product type badge */
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1.5px solid currentColor;
+            cursor: pointer;
+            transition: all 0.15s;
+            background: transparent;
+            color: #64748b;
+            border-color: #cbd5e1;
+        }
+
+        .type-badge.selected {
+            background: #1e40af;
+            color: white;
+            border-color: #1e40af;
+        }
+
+        .type-badge:hover:not(.selected) {
+            border-color: #1e40af;
+            color: #1e40af;
+            background: #eff6ff;
+        }
+
+        /* Measurement hint box */
+        .mea-hint {
+            display: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 0.82rem;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            color: #0369a1;
+            margin-bottom: 1rem;
+        }
+
+        .mea-hint.visible {
+            display: block;
+        }
+
+        .mea-hint strong {
+            display: block;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+
 <body>
     <div th:replace="~{fragments/sidebar :: sidebar('products')}"></div>
-    
+
     <div class="main-content">
         <nav th:replace="~{fragments/header :: navbar}"></nav>
-        
-        <div class="container-fluid mt-4 mb-5">
-            <nav aria-label="breadcrumb" class="mb-4">
+
+        <div class="container-fluid mt-4 mb-5" style="max-width: 1300px;">
+            <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a th:href="@{/admin/products}">Sản phẩm</a></li>
-                    <li class="breadcrumb-item active" th:text="${productId != null ? 'Chỉnh sửa' : 'Thêm mới'}">Thêm mới</li>
+                    <li class="breadcrumb-item active" th:text="${productId != null ? 'Chỉnh sửa' : 'Thêm mới'}">Thêm
+                        mới</li>
                 </ol>
             </nav>
 
             <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-5">
-                <div class="bg-primary text-white p-3">
-                    <h5 class="m-0" th:text="${productId != null ? 'Chỉnh sửa Sản phẩm' : 'Thêm Sản phẩm mới'}">Thêm Sản phẩm</h5>
+                <div class="bg-primary text-white p-3 d-flex justify-content-between align-items-center">
+                    <h5 class="m-0" th:text="${productId != null ? 'Chỉnh sửa Sản phẩm' : 'Thêm Sản phẩm mới'}">Sản phẩm
+                    </h5>
+                    <span id="variant-count-badge" class="badge bg-white text-primary fw-bold"
+                        style="font-size:0.85rem;">0 variants</span>
                 </div>
+
                 <div class="card-body p-4">
-                    <form th:action="@{/admin/products/save}" th:object="${product}" method="post">
+                    <form id="productForm" th:action="@{/admin/products/save}" method="post" th:object="${product}">
                         <input type="hidden" name="id" th:value="${productId}">
-                        
-                        <div class="row g-4">
-                            <!-- Basic Info -->
-                            <div class="col-md-8">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Tên sản phẩm</label>
-                                    <input type="text" th:field="*{name}" class="form-control" placeholder="Nhập tên sản phẩm..." required>
-                                    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger small mt-1"></div>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Mô tả sản phẩm</label>
-                                    <textarea th:field="*{description}" class="form-control" rows="8" placeholder="Nhập mô tả chi tiết..."></textarea>
-                                </div>
-                            </div>
-                            
-                            <!-- Pricing & Category -->
-                            <div class="col-md-4">
-                                <div class="card bg-light border-0 rounded-4 p-3 mb-4">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Giá bán</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">$</span>
-                                            <input type="number" th:field="*{price}" class="form-control" step="0.01" required>
+                        <!-- Hidden inputs for variants (populated by JS) -->
+                        <div id="variantHiddenInputs"></div>
+
+                        <!-- Tab Navigation -->
+                        <div class="form-tab-bar">
+                            <button type="button" class="form-tab active" onclick="switchTab('basic', this)">
+                                <i class="bi bi-info-circle me-1"></i>Thông tin cơ bản
+                            </button>
+                            <button type="button" class="form-tab" onclick="switchTab('variants', this)">
+                                <i class="bi bi-grid me-1"></i>Biến thể màu × size
+                            </button>
+                            <button type="button" class="form-tab" onclick="switchTab('images', this)">
+                                <i class="bi bi-images me-1"></i>Hình ảnh
+                            </button>
+                        </div>
+
+                        <!-- ==================== TAB 1: BASIC INFO ==================== -->
+                        <div id="tab-basic" class="tab-panel active">
+                            <div class="row g-4">
+                                <div class="col-md-8">
+                                    <div class="field-group">
+                                        <label class="field-label">Tên sản phẩm</label>
+                                        <input type="text" th:field="*{name}" class="form-control"
+                                            placeholder="Nhập tên sản phẩm..." required>
+                                        <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"
+                                            class="text-danger small mt-1"></div>
+                                    </div>
+                                    <div class="field-group">
+                                        <label class="field-label">Mô tả sản phẩm</label>
+                                        <textarea th:field="*{description}" class="form-control" rows="5"
+                                            placeholder="Nhập mô tả chi tiết..."></textarea>
+                                    </div>
+
+                                    <!-- Product Type -->
+                                    <div class="field-group">
+                                        <label class="field-label">Loại sản phẩm <span
+                                                class="text-danger">*</span></label>
+                                        <input type="hidden" th:field="*{productType}" id="productTypeInput" required>
+                                        <div class="d-flex flex-wrap gap-2" id="productTypeBadges">
+                                            <button type="button" class="type-badge" data-type="TOP"
+                                                onclick="selectProductType('TOP')">
+                                                <i class="bi bi-person-arms-up"></i> TOP (Áo)
+                                            </button>
+                                            <button type="button" class="type-badge" data-type="BOTTOM"
+                                                onclick="selectProductType('BOTTOM')">
+                                                <i class="bi bi-view-stacked"></i> BOTTOM (Quần)
+                                            </button>
+                                            <button type="button" class="type-badge" data-type="DRESS"
+                                                onclick="selectProductType('DRESS')">
+                                                <i class="bi bi-stars"></i> DRESS (Váy)
+                                            </button>
+                                            <button type="button" class="type-badge" data-type="OUTERWEAR"
+                                                onclick="selectProductType('OUTERWEAR')">
+                                                <i class="bi bi-shield"></i> OUTERWEAR (Khoác)
+                                            </button>
+                                        </div>
+                                        <div class="helper-text mt-2">
+                                            Loại sản phẩm xác định bộ số đo cần nhập để AI tư vấn size.
                                         </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Số lượng tồn kho</label>
-                                        <input type="number" th:field="*{stock}" class="form-control" required>
-                                    </div>
-                                    <div class="mb-0">
-                                        <label class="form-label fw-bold">Danh mục</label>
-                                        <select th:field="*{categoryId}" class="form-select" required>
-                                            <option value="">-- Chọn danh mục --</option>
-                                            <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Category</option>
+
+                                    <!-- Gender -->
+                                    <div class="field-group">
+                                        <label class="field-label">Giới tính <span class="text-danger">*</span></label>
+                                        <select th:field="*{gender}" class="form-select" required>
+                                            <option value="">-- Chọn giới tính --</option>
+                                            <option th:each="g : ${genders}" th:value="${g.name()}"
+                                                th:text="${g.name() == 'MALE' ? 'Nam' : g.name() == 'FEMALE' ? 'Nữ' : 'Unisex'}">
+                                            </option>
                                         </select>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- List Fields (Images, Colors, Sizes) -->
-                            <div class="col-12 mt-4">
-                                <h5 class="border-bottom pb-2 mb-3">Thông tin chi tiết (List fields)</h5>
-                                <div class="row g-4">
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold">URLs Hình ảnh (Dùng dấu phẩy để tách)</label>
-                                        <textarea th:field="*{imageUrls}" class="form-control" rows="3" placeholder="https://image1.jpg, https://image2.jpg..."></textarea>
-                                        <small class="text-muted">Nhập danh sách Link ảnh, cách nhau bởi dấu phẩy.</small>
+                                <div class="col-md-4">
+                                    <div class="card bg-light border-0 rounded-4 p-3">
+                                        <div class="field-group">
+                                            <label class="field-label">Giá bán (VNĐ)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">₫</span>
+                                                <input type="number" th:field="*{price}" class="form-control"
+                                                    step="1000" required>
+                                            </div>
+                                        </div>
+                                        <div class="field-group">
+                                            <label class="field-label">Tồn kho tổng</label>
+                                            <input type="number" th:field="*{stock}" id="totalStockInput"
+                                                class="form-control" readonly style="background:#f8fafc;">
+                                            <div class="helper-text">Được tính tự động từ variants</div>
+                                        </div>
+                                        <div class="field-group">
+                                            <label class="field-label">Danh mục</label>
+                                            <select th:field="*{categoryId}" class="form-select">
+                                                <option value="">-- Chọn danh mục --</option>
+                                                <option th:each="cat : ${categories}" th:value="${cat.id}"
+                                                    th:text="${cat.name}">Category</option>
+                                            </select>
+                                        </div>
+                                        <div class="field-group mb-0 mt-2">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" th:field="*{featured}"
+                                                    id="featured">
+                                                <label class="form-check-label fw-semibold" for="featured">Nổi bật
+                                                    (Featured)</label>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold">Màu sắc (Dùng dấu phẩy để tách)</label>
-                                        <textarea th:field="*{colors}" class="form-control" rows="3" placeholder="Trắng, Đen, Xanh dương..."></textarea>
-                                        <small class="text-muted">Nhập các màu hiện có.</small>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label fw-bold">Kích thước (Dùng dấu phẩy để tách)</label>
-                                        <textarea th:field="*{sizes}" class="form-control" rows="3" placeholder="S, M, L, XL..."></textarea>
-                                        <small class="text-muted">Nhập các size hiện có.</small>
+
+                                    <!-- Measurement guide card (shown after type selected) -->
+                                    <div class="card border-0 rounded-4 p-3 mt-3" id="meaGuideCard"
+                                        style="display:none; background:#f0fdf4; border: 1px solid #bbf7d0 !important;">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <i class="bi bi-rulers text-success"></i>
+                                            <strong class="text-success" style="font-size:0.85rem;">Số đo cần nhập cho
+                                                loại này</strong>
+                                        </div>
+                                        <div id="meaGuideList"
+                                            style="font-size:0.82rem; color:#166534; line-height:1.8;"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-5 d-flex gap-3 justify-content-end">
+                        <!-- ==================== TAB 2: VARIANTS ==================== -->
+                        <div id="tab-variants" class="tab-panel">
+
+                            <!-- Measurement hint based on productType -->
+                            <div class="mea-hint" id="meaHintBox">
+                                <strong><i class="bi bi-lightbulb me-1"></i> Gợi ý số đo theo loại sản phẩm</strong>
+                                <span id="meaHintText"></span>
+                            </div>
+
+                            <!-- Step 1: Define colors -->
+                            <div class="color-manager">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong style="font-size:0.9rem;">Bước 1 — Định nghĩa màu sắc</strong>
+                                    <button type="button" class="btn-add-color" onclick="addColorEntry()">+ Thêm
+                                        màu</button>
+                                </div>
+                                <div id="colorEntriesContainer">
+                                    <!-- color entries injected by JS -->
+                                </div>
+                                <div class="helper-text mt-1">Mỗi màu cần tên + mã hex để hiển thị đúng trên frontend
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Define sizes -->
+                            <div class="color-manager">
+                                <strong style="font-size:0.9rem; display:block; margin-bottom:8px;">Bước 2 — Định nghĩa
+                                    size</strong>
+                                <div id="sizeTagsContainer" class="d-flex flex-wrap gap-2 mb-2"></div>
+                                <div class="size-input-row">
+                                    <input type="text" id="newSizeInput" class="form-control" style="max-width:120px;"
+                                        placeholder="VD: M, 38...">
+                                    <button type="button" class="btn btn-outline-primary btn-sm add-size-btn"
+                                        onclick="addSize()">+ Thêm size</button>
+                                </div>
+                                <div class="helper-text mt-1">Size thường dùng: XS, S, M, L, XL, XXL hoặc 36, 37, 38,
+                                    39, 40</div>
+                                <div class="mt-2 d-flex gap-2 flex-wrap">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="addPresetSizes(['XS','S','M','L','XL','XXL'])">Preset: Quốc tế</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="addPresetSizes(['36','37','38','39','40','41','42'])">Preset: Giày
+                                        (36-42)</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                                        onclick="addPresetSizes(['S','M','L','XL'])">Preset: S-XL</button>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Variant Matrix -->
+                            <div class="variant-editor">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="section-title mb-0" style="border:none; padding:0;">
+                                        Bước 3 — Nhập thông số từng variant (màu × size)
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                            onclick="generateVariantMatrix()">
+                                            <i class="bi bi-arrow-repeat"></i> Tạo lại matrix
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                            onclick="toggleMeasurements()">
+                                            <i class="bi bi-rulers"></i> <span id="measureToggleLabel">Hiện số đo
+                                                vải</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="helper-text mb-2">
+                                    Điền <strong>số đo vải</strong> (cm) cho từng variant để AI tư vấn size chính xác.
+                                    Chỉ những cột phù hợp với loại sản phẩm sẽ hiển thị.
+                                </div>
+
+                                <div class="variant-table-wrapper">
+                                    <table class="variant-table" id="variantTable">
+                                        <thead>
+                                            <tr id="variantTableHead">
+                                                <th>Màu</th>
+                                                <th>Size</th>
+                                                <th>Tồn kho</th>
+                                                <!-- measurement columns — visibility controlled by JS -->
+                                                <th class="mea-col mea-chest" style="display:none;">Ngực (cm)</th>
+                                                <th class="mea-col mea-shoulder" style="display:none;">Vai (cm)</th>
+                                                <th class="mea-col mea-waist" style="display:none;">Eo (cm)</th>
+                                                <th class="mea-col mea-hip" style="display:none;">Hông (cm)</th>
+                                                <th class="mea-col mea-sleeve" style="display:none;">Dài tay (cm)</th>
+                                                <th class="mea-col mea-body" style="display:none;">Dài thân (cm)</th>
+                                                <th class="mea-col mea-thigh" style="display:none;">Bắp đùi (cm)</th>
+                                                <th class="mea-col mea-inseam" style="display:none;">Đáy quần (cm)</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="variantTableBody">
+                                            <tr id="empty-row">
+                                                <td colspan="12" class="text-center text-muted py-4"
+                                                    style="font-size:0.9rem;">
+                                                    <i class="bi bi-info-circle me-2"></i>Chưa có variant nào. Thêm màu
+                                                    + size rồi nhấn "Tạo lại matrix".
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ==================== TAB 3: IMAGES ==================== -->
+                        <div id="tab-images" class="tab-panel">
+                            <div class="field-group">
+                                <label class="field-label">URLs Hình ảnh sản phẩm</label>
+                                <div id="imageUrlsContainer"></div>
+                                <button type="button" class="btn-add-color mt-2" onclick="addImageUrl()">+ Thêm URL
+                                    ảnh</button>
+                                <div class="helper-text mt-1">Mỗi URL một dòng riêng. Ảnh đầu tiên sẽ là ảnh đại diện.
+                                </div>
+                            </div>
+                            <div id="imagePreviewRow" class="d-flex flex-wrap gap-3 mt-3"></div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <hr class="my-4">
+                        <div class="d-flex gap-3 justify-content-end">
                             <a th:href="@{/admin/products}" class="btn btn-light px-4 rounded-pill">Quay lại</a>
-                            <button type="submit" class="btn btn-primary px-5 rounded-pill shadow-sm">Lưu Sản phẩm</button>
+                            <button type="submit" class="btn btn-primary px-5 rounded-pill shadow-sm"
+                                onclick="serializeVariants()">
+                                <i class="bi bi-save me-1"></i> Lưu sản phẩm
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
-
         </div>
 
         <div th:replace="~{fragments/footer :: footer}"></div>
     </div>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+
+        // ─── State ───────────────────────────────────────────────────
+        let colors = [];  // [{id, name, hex}]
+        let sizes = [];  // ['S','M','L',...]
+        let variants = {};  // key: "colorId-size" → {stock, chestWidth, shoulderWidth, waistWidth, hipWidth, sleeveLength, bodyLength, thighWidth, inseam, variantId}
+        let showMeasurements = false;
+        let colorIdCounter = 0;
+
+        // Preload existing data from Thymeleaf (edit mode)
+        const existingVariants = /*[[${product.variants}]]*/[];
+        const existingColors = /*[[${product.colors}]]*/[];
+        const existingSizes = /*[[${product.sizes}]]*/[];
+        const existingImageUrls = /*[[${product.imageUrls}]]*/[];
+        const existingProductType = /*[[${product.productType}]]*/ null;
+
+        // ─── Measurement columns config per product type ─────────────
+        // Map: productType → set of column keys that are relevant
+        const MEASUREMENT_SCHEMA = {
+            TOP: ['chest', 'shoulder', 'waist', 'sleeve', 'body'],
+            OUTERWEAR: ['chest', 'shoulder', 'waist', 'sleeve', 'body'],
+            BOTTOM: ['waist', 'hip', 'thigh', 'inseam', 'body'],
+            DRESS: ['chest', 'shoulder', 'waist', 'hip', 'body'],
+        };
+
+        const MEASUREMENT_LABELS = {
+            chest: 'Ngực (chestWidth)',
+            shoulder: 'Vai (shoulderWidth)',
+            waist: 'Eo (waistWidth)',
+            hip: 'Hông (hipWidth)',
+            sleeve: 'Dài tay (sleeveLength)',
+            body: 'Dài thân (bodyLength)',
+            thigh: 'Bắp đùi (thighWidth)',
+            inseam: 'Đáy quần (inseam)',
+        };
+
+        const MEASUREMENT_HINTS = {
+            TOP: 'TOP (Áo): Ngực, Vai, Eo, Dài tay, Dài thân',
+            BOTTOM: 'BOTTOM (Quần): Eo, Hông, Bắp đùi, Đáy quần, Dài thân',
+            DRESS: 'DRESS (Váy): Vai, Ngực, Eo, Hông, Dài thân',
+            OUTERWEAR: 'OUTERWEAR (Khoác): Ngực, Vai, Eo, Dài tay, Dài thân',
+        };
+
+        // ─── Tab navigation ──────────────────────────────────────────
+        function switchTab(name, btn) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.form-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            if (btn) btn.classList.add('active');
+        }
+
+        // ─── Product Type selection ──────────────────────────────────
+        function selectProductType(type) {
+            document.getElementById('productTypeInput').value = type;
+
+            // Update badge UI
+            document.querySelectorAll('#productTypeBadges .type-badge').forEach(b => {
+                b.classList.toggle('selected', b.dataset.type === type);
+            });
+
+            // Show measurement guide card
+            const guideCard = document.getElementById('meaGuideCard');
+            const guideList = document.getElementById('meaGuideList');
+            const cols = MEASUREMENT_SCHEMA[type] || [];
+            if (cols.length) {
+                guideCard.style.display = 'block';
+                guideList.innerHTML = cols.map(k =>
+                    `<span>✔ ${MEASUREMENT_LABELS[k]}</span><br>`
+                ).join('');
+            } else {
+                guideCard.style.display = 'none';
+            }
+
+            // Update hint box in variants tab
+            const hint = document.getElementById('meaHintBox');
+            const hintText = document.getElementById('meaHintText');
+            if (MEASUREMENT_HINTS[type]) {
+                hintText.textContent = MEASUREMENT_HINTS[type];
+                hint.classList.add('visible');
+            } else {
+                hint.classList.remove('visible');
+            }
+
+            // Re-render matrix with updated columns
+            applyMeasurementColumns(type);
+            if (showMeasurements) generateVariantMatrix();
+        }
+
+        function getCurrentProductType() {
+            return document.getElementById('productTypeInput').value || null;
+        }
+
+        function applyMeasurementColumns(type) {
+            const relevantCols = MEASUREMENT_SCHEMA[type] || [];
+            // Show/hide header columns
+            if (showMeasurements) {
+                document.querySelectorAll('.mea-col').forEach(el => {
+                    const isRelevant = relevantCols.some(k => el.classList.contains('mea-' + k));
+                    el.style.display = isRelevant ? '' : 'none';
+                });
+            }
+        }
+
+        // ─── Color Management ────────────────────────────────────────
+        function addColorEntry(name = '', hex = '#000000') {
+            const id = ++colorIdCounter;
+            colors.push({ id, name, hex });
+            renderColorEntries();
+        }
+
+        function removeColor(id) {
+            colors = colors.filter(c => c.id !== id);
+            renderColorEntries();
+            generateVariantMatrix();
+        }
+
+        function updateColor(id, field, value) {
+            const c = colors.find(c => c.id === id);
+            if (!c) return;
+            c[field] = value;
+            if (field === 'hex') {
+                const preview = document.getElementById('preview-' + id);
+                if (preview) preview.style.background = value;
+                // Update hex label
+                const hexLabel = document.getElementById('hexlabel-' + id);
+                if (hexLabel) hexLabel.textContent = value;
+            }
+            generateVariantMatrix();
+        }
+
+        function renderColorEntries() {
+            const container = document.getElementById('colorEntriesContainer');
+            container.innerHTML = '';
+            colors.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'color-entry';
+                div.innerHTML = `
+                <div class="color-preview-box" id="preview-${c.id}" style="background:${c.hex};"></div>
+                <input type="color" value="${c.hex}" onchange="updateColor(${c.id},'hex',this.value)"
+                    style="width:38px;height:32px;padding:1px 2px;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;">
+                <input type="text" value="${c.name}" placeholder="Tên màu (VD: Trắng)"
+                    class="form-control" style="max-width:160px;"
+                    oninput="updateColor(${c.id},'name',this.value)">
+                <span id="hexlabel-${c.id}" style="font-size:0.8rem;color:#94a3b8;min-width:70px;">${c.hex}</span>
+                <button type="button" class="btn-remove-variant" onclick="removeColor(${c.id})" title="Xóa màu">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            `;
+                container.appendChild(div);
+            });
+        }
+
+        // ─── Size Management ─────────────────────────────────────────
+        function addSize() {
+            const input = document.getElementById('newSizeInput');
+            const val = input.value.trim().toUpperCase();
+            if (!val || sizes.includes(val)) { input.value = ''; return; }
+            sizes.push(val);
+            input.value = '';
+            renderSizeTags();
+            generateVariantMatrix();
+        }
+
+        function removeSize(size) {
+            sizes = sizes.filter(s => s !== size);
+            renderSizeTags();
+            generateVariantMatrix();
+        }
+
+        function addPresetSizes(preset) {
+            preset.forEach(s => { if (!sizes.includes(s)) sizes.push(s); });
+            renderSizeTags();
+            generateVariantMatrix();
+        }
+
+        function renderSizeTags() {
+            const container = document.getElementById('sizeTagsContainer');
+            container.innerHTML = '';
+            sizes.forEach(s => {
+                const span = document.createElement('span');
+                span.className = 'size-tag';
+                span.innerHTML = `${s} <button type="button" class="btn-rm" onclick="removeSize('${s}')">×</button>`;
+                container.appendChild(span);
+            });
+        }
+
+        document.getElementById('newSizeInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); addSize(); }
+        });
+
+        // ─── Variant Matrix ──────────────────────────────────────────
+        function variantKey(colorId, size) { return `${colorId}-${size}`; }
+
+        function generateVariantMatrix() {
+            const tbody = document.getElementById('variantTableBody');
+            tbody.innerHTML = '';
+            updateVariantCountBadge();
+
+            if (!colors.length || !sizes.length) {
+                tbody.innerHTML = `<tr id="empty-row"><td colspan="12" class="text-center text-muted py-4" style="font-size:0.9rem;">
+                <i class="bi bi-info-circle me-2"></i>Thêm ít nhất 1 màu và 1 size để tạo variant matrix.
+            </td></tr>`;
+                updateTotalStock();
+                return;
+            }
+
+            const type = getCurrentProductType();
+            const relevantCols = MEASUREMENT_SCHEMA[type] || [];
+
+            colors.forEach(color => {
+                sizes.forEach((size, si) => {
+                    const key = variantKey(color.id, size);
+                    if (!variants[key]) {
+                        variants[key] = {
+                            stock: 0,
+                            chestWidth: '', shoulderWidth: '', waistWidth: '', hipWidth: '',
+                            sleeveLength: '', bodyLength: '', thighWidth: '', inseam: '',
+                            variantId: null
+                        };
+                    }
+                    const v = variants[key];
+                    const meaDisplay = showMeasurements ? '' : 'display:none;';
+                    const isFirstSizeForColor = (si === 0);
+
+                    const colVisible = (colKey) => {
+                        if (!showMeasurements) return 'display:none;';
+                        return relevantCols.includes(colKey) ? '' : 'display:none;';
+                    };
+
+                    const tr = document.createElement('tr');
+                    tr.dataset.key = key;
+                    tr.innerHTML = `
+                    ${isFirstSizeForColor ? `
+                    <td rowspan="${sizes.length}" style="border-right:1px solid #e2e8f0; background:#fafafa; vertical-align:middle; min-width:140px;">
+                        <span class="color-dot" style="background:${color.hex};"></span>
+                        <span style="font-weight:600;">${color.name || '—'}</span>
+                        <br><small style="color:#94a3b8;">${color.hex}</small>
+                    </td>` : ''}
+                    <td><span class="badge-size">${size}</span></td>
+                    <td><input type="number" class="form-control stock-input variant-stock" min="0" value="${v.stock}"
+                        data-key="${key}" data-field="stock" oninput="updateVariantField(this)" style="max-width:90px;"></td>
+                    <!-- Chest -->
+                    <td class="mea-col mea-chest measurement-cell" style="${colVisible('chest')}">
+                        <input type="number" class="form-control" step="0.1" min="0" value="${v.chestWidth}"
+                            data-key="${key}" data-field="chestWidth" oninput="updateVariantField(this)" placeholder="—">
+                    </td>
+                    <!-- Shoulder -->
+                    <td class="mea-col mea-shoulder measurement-cell" style="${colVisible('shoulder')}">
+                        <input type="number" class="form-control" step="0.1" min="0" value="${v.shoulderWidth}"
+                            data-key="${key}" data-field="shoulderWidth" oninput="updateVariantField(this)" placeholder="—">
+                    </td>
+                    <!-- Waist -->
+                    <td class="mea-col mea-waist measurement-cell" style="${colVisible('waist')}">
+                        <input type="number" class="form-control" step="0.1" min="0" value="${v.waistWidth}"
+                            data-key="${key}" data-field="waistWidth" oninput="updateVariantField(this)" placeholder="—">
+                    </td>
+                    <!-- Hip -->
+                    <td class="mea-col mea-hip measurement-cell" style="${colVisible('hip')}">
+                        <input type="number" class="form-control" step="0.1" min="0" value="${v.hipWidth}"
+                            data-key="${key}" data-field="hipWidth" oninput="updateVariantField(this)" placeholder="—">
+                    </td>
+                    <!-- Sleeve -->
+                    <td class="mea-col mea-sleeve measurement-cell" style="${colVisible('sleeve')}">
+                        <input type="number" class="form-control" step="0.1" min="0" value="${v.sleeveLength}"
+                            data-key="${key}" data-field="sleeveLength" oninput="updateVariantField(this)" placeholder="—">
+                    </td>
+                    <!-- Body length -->
+                    <td class="mea-col mea-body measurement-cell" style="${colVisible('body')}">
+                        <input type="number" class="form-control" step="0.1" min="0" value="${v.bodyLength}"
+                            data-key="${key}" data-field="bodyLength" oninput="updateVariantField(this)" placeholder="—">
+                    </td>
+                    <!-- Thigh (BOTTOM) -->
+                    <td class="mea-col mea-thigh measurement-cell" style="${colVisible('thigh')}">
+                        <input type="number" class="form-control" step="0.1" min="0" value="${v.thighWidth}"
+                            data-key="${key}" data-field="thighWidth" oninput="updateVariantField(this)" placeholder="—">
+                    </td>
+                    <!-- Inseam (BOTTOM) -->
+                    <td class="mea-col mea-inseam measurement-cell" style="${colVisible('inseam')}">
+                        <input type="number" class="form-control" step="0.1" min="0" value="${v.inseam}"
+                            data-key="${key}" data-field="inseam" oninput="updateVariantField(this)" placeholder="—">
+                    </td>
+                    <td>
+                        <button type="button" class="btn-remove-variant" onclick="removeVariant('${key}')" title="Xóa biến thể này">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                    tbody.appendChild(tr);
+                });
+            });
+
+            updateTotalStock();
+            updateVariantCountBadge();
+        }
+
+        function updateVariantField(input) {
+            const key = input.dataset.key;
+            const field = input.dataset.field;
+            if (!variants[key]) return;
+            variants[key][field] = input.value;
+            if (field === 'stock') updateTotalStock();
+        }
+
+        function removeVariant(key) {
+            const row = document.querySelector(`tr[data-key="${key}"]`);
+            if (row) row.remove();
+            delete variants[key];
+            updateTotalStock();
+            updateVariantCountBadge();
+        }
+
+        function updateTotalStock() {
+            let total = 0;
+            document.querySelectorAll('.variant-stock').forEach(input => {
+                total += parseInt(input.value || 0);
+            });
+            document.getElementById('totalStockInput').value = total;
+        }
+
+        function updateVariantCountBadge() {
+            const count = document.querySelectorAll('#variantTableBody tr[data-key]').length;
+            document.getElementById('variant-count-badge').textContent = count + ' variants';
+        }
+
+        function toggleMeasurements() {
+            showMeasurements = !showMeasurements;
+            const type = getCurrentProductType();
+            const relevantCols = MEASUREMENT_SCHEMA[type] || [];
+
+            if (showMeasurements) {
+                // Show only relevant columns for this product type (or all if no type selected)
+                document.querySelectorAll('.mea-col').forEach(el => {
+                    if (!type) {
+                        el.style.display = '';
+                    } else {
+                        const isRelevant = relevantCols.some(k => el.classList.contains('mea-' + k));
+                        el.style.display = isRelevant ? '' : 'none';
+                    }
+                });
+            } else {
+                document.querySelectorAll('.mea-col').forEach(el => { el.style.display = 'none'; });
+            }
+
+            document.getElementById('measureToggleLabel').textContent =
+                showMeasurements ? 'Ẩn số đo vải' : 'Hiện số đo vải';
+        }
+
+        // ─── Image URLs ───────────────────────────────────────────────
+        function addImageUrl(value = '') {
+            const container = document.getElementById('imageUrlsContainer');
+            const div = document.createElement('div');
+            div.className = 'd-flex gap-2 align-items-center mb-2';
+            div.innerHTML = `
+            <input type="text" class="form-control image-url-input" placeholder="https://..." value="${value}"
+                oninput="updateImagePreview()">
+            <button type="button" class="btn-remove-variant" onclick="this.parentElement.remove(); updateImagePreview();">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        `;
+            container.appendChild(div);
+            updateImagePreview();
+        }
+
+        function updateImagePreview() {
+            const preview = document.getElementById('imagePreviewRow');
+            preview.innerHTML = '';
+            document.querySelectorAll('.image-url-input').forEach((input, idx) => {
+                if (!input.value.trim()) return;
+                const div = document.createElement('div');
+                div.style.cssText = 'position:relative;';
+                div.innerHTML = `
+                <img src="${input.value}" style="width:100px;height:100px;object-fit:cover;border-radius:10px;border:1px solid #e2e8f0;"
+                    onerror="this.src='https://placehold.co/100x100/e2e8f0/94a3b8?text=Error'">
+                ${idx === 0 ? '<span class="badge bg-primary" style="position:absolute;top:4px;left:4px;font-size:0.7rem;">Đại diện</span>' : ''}
+            `;
+                preview.appendChild(div);
+            });
+        }
+
+        // ─── Serialize variants to hidden inputs before submit ────────
+        function serializeVariants() {
+            const container = document.getElementById('variantHiddenInputs');
+            container.innerHTML = '';
+
+            // Serialize image URLs
+            document.querySelectorAll('.image-url-input').forEach((input, idx) => {
+                if (input.value.trim()) {
+                    const el = document.createElement('input');
+                    el.type = 'hidden';
+                    el.name = `imageUrls[${idx}]`;
+                    el.value = input.value.trim();
+                    container.appendChild(el);
+                }
+            });
+
+            // Serialize variants
+            let i = 0;
+            document.querySelectorAll('#variantTableBody tr[data-key]').forEach(row => {
+                const key = row.dataset.key;
+                const v = variants[key] || {};
+
+                // Refresh from DOM inputs
+                row.querySelectorAll('[data-field]').forEach(inp => {
+                    v[inp.dataset.field] = inp.value;
+                });
+
+                const colorId = parseInt(key.split('-')[0]);
+                const size = key.split('-').slice(1).join('-');
+                const colorObj = colors.find(c => c.id === colorId);
+
+                const fields = {
+                    [`variants[${i}].size`]: size,
+                    [`variants[${i}].colorName`]: colorObj?.name || '',
+                    [`variants[${i}].colorHex`]: colorObj?.hex || '',
+                    [`variants[${i}].stock`]: v.stock || 0,
+                    [`variants[${i}].measurements.chestWidth`]: v.chestWidth || '',
+                    [`variants[${i}].measurements.shoulderWidth`]: v.shoulderWidth || '',
+                    [`variants[${i}].measurements.waistWidth`]: v.waistWidth || '',
+                    [`variants[${i}].measurements.hipWidth`]: v.hipWidth || '',
+                    [`variants[${i}].measurements.sleeveLength`]: v.sleeveLength || '',
+                    [`variants[${i}].measurements.bodyLength`]: v.bodyLength || '',
+                    [`variants[${i}].measurements.thighWidth`]: v.thighWidth || '',
+                    [`variants[${i}].measurements.inseam`]: v.inseam || '',
+                };
+                if (v.variantId) fields[`variants[${i}].id`] = v.variantId;
+
+                Object.entries(fields).forEach(([name, value]) => {
+                    if (value === '') return;
+                    const el = document.createElement('input');
+                    el.type = 'hidden';
+                    el.name = name;
+                    el.value = value;
+                    container.appendChild(el);
+                });
+
+                i++;
+            });
+
+            // Serialize colors
+            colors.forEach((c, idx) => {
+                ['name', 'hex'].forEach(field => {
+                    const el = document.createElement('input');
+                    el.type = 'hidden';
+                    el.name = `colors[${idx}].${field}`;
+                    el.value = c[field] || '';
+                    container.appendChild(el);
+                });
+            });
+
+            // Serialize sizes
+            sizes.forEach((s, idx) => {
+                const el = document.createElement('input');
+                el.type = 'hidden';
+                el.name = `sizes[${idx}]`;
+                el.value = s;
+                container.appendChild(el);
+            });
+        }
+
+        // ─── Initialize from existing data (edit mode) ────────────────
+        function init() {
+            // Load colors
+            if (existingColors && existingColors.length > 0) {
+                existingColors.forEach(c => {
+                    const id = ++colorIdCounter;
+                    colors.push({ id, name: c.name || '', hex: c.hex || '#000000' });
+                });
+                renderColorEntries();
+            }
+
+            // Load sizes
+            if (existingSizes && existingSizes.length > 0) {
+                existingSizes.forEach(s => { if (s && !sizes.includes(s)) sizes.push(s); });
+                renderSizeTags();
+            }
+
+            // Load existing variants into state
+            if (existingVariants && existingVariants.length > 0) {
+                existingVariants.forEach(v => {
+                    const colorObj = colors.find(c => c.name === v.colorName);
+                    if (!colorObj) return;
+                    const key = variantKey(colorObj.id, v.size);
+                    variants[key] = {
+                        stock: v.stock || 0,
+                        chestWidth: v.measurements?.chestWidth || '',
+                        shoulderWidth: v.measurements?.shoulderWidth || '',
+                        waistWidth: v.measurements?.waistWidth || '',
+                        hipWidth: v.measurements?.hipWidth || '',
+                        sleeveLength: v.measurements?.sleeveLength || '',
+                        bodyLength: v.measurements?.bodyLength || '',
+                        thighWidth: v.measurements?.thighWidth || '',
+                        inseam: v.measurements?.inseam || '',
+                        variantId: v.id || null,
+                    };
+                });
+            }
+
+            // Restore product type selection
+            if (existingProductType) {
+                selectProductType(existingProductType);
+            }
+
+            if (colors.length || sizes.length) generateVariantMatrix();
+
+            // Load images
+            if (existingImageUrls && existingImageUrls.length > 0) {
+                existingImageUrls.forEach(url => addImageUrl(url));
+            } else {
+                addImageUrl(); // one empty row
+            }
+        }
+
+        init();
+        /*]]>*/
+    </script>
 </body>
+
 </html>

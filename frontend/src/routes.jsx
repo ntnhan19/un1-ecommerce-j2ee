@@ -19,6 +19,9 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminCollections from './pages/admin/AdminCollections';
 import AdminOrders from './pages/admin/AdminOrders';
+import AdminCategories from './pages/admin/AdminCategories';
+import InventoryTable from './components/admin/InventoryTable';
+import UsersTable from './components/admin/UsersTable';
 import { SizeProvider } from './context/SizeContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
@@ -46,7 +49,7 @@ const AppRoutes = () => {
                   <Route path="/auth-register" element={<Auth />} />
                   <Route path="/cart" element={<ShoppingCart />} />
                   <Route path="/wishlist" element={<Wishlist />} />
-                  
+
                   {/* Private Routes */}
                   <Route element={<PrivateRoute />}>
                     <Route path="/checkout" element={<Checkout />} />
@@ -61,12 +64,15 @@ const AppRoutes = () => {
                     <Route path="/admin/products" element={<AdminProducts />} />
                     <Route path="/admin/collections" element={<AdminCollections />} />
                     <Route path="/admin/orders" element={<AdminOrders />} />
+                    <Route path="/admin/categories" element={<AdminCategories />} />
+                    <Route path="/admin/inventory" element={<InventoryTable />} />
+                    <Route path="/admin/users" element={<UsersTable />} />
                   </Route>
 
                   <Route path="/track-order" element={<TrackOrder />} />
                   <Route path="/about-us" element={<AboutUs />} />
                   <Route path="/contact-us" element={<ContactUs />} />
-                  
+
                   {/* Redirect unknown routes to / */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

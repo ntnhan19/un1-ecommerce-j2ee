@@ -9,11 +9,11 @@ const CartSummary = () => {
     <div className="cart-summary">
       <h3>TÓM TẮT ĐƠN HÀNG</h3>
 
-      {/* Product List */}
       <div className="summary-products">
         {cartItems.map((item) => (
           <div key={item.id} className="summary-product-item">
-            <div className="summary-product-name">{item.name}</div>
+            {/* ✅ productName thay vì name */}
+            <div className="summary-product-name">{item.productName}</div>
             <div className="summary-product-details">
               <span className="summary-product-attr">
                 Màu: <strong>{item.color || 'Đen'}</strong>
@@ -58,4 +58,3 @@ const CartSummary = () => {
 };
 
 export default CartSummary;
-

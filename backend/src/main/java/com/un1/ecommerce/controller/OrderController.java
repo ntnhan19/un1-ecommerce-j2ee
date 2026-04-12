@@ -54,10 +54,24 @@ public class OrderController {
                                                 .build());
         }
 
-        @PutMapping("/{id}/status")
+        @GetMapping
         @PreAuthorize("hasRole('ADMIN')")
-        public ResponseEntity<ApiResponse> updateOrderStatus(@PathVariable Long id,
-                        @RequestParam OrderStatus status) {
+        public ResponseEntity<ApiResponse> getAllOrders() {
+                List<OrderResponse> orders = orderService.getAllOrders();
+                return ResponseEntity.ok(
+                                ApiResponse.builder()
+                                                .success(true)
+                                                .message("All orders retrieved")
+                                                .data(orders)
+                                                .build());
+        }
+
+        @PatchMapping("/{id}/status")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<ApiResponse> updateOrderStatus(
+                        @PathVariable Long id,
+                        @RequestBody java.util.Map<String, String> body) {
+                OrderStatus status = OrderStatus.valueOf(body.get("status").toUpperCase());
                 OrderResponse orderResponse = orderService.updateStatus(id, status);
                 return ResponseEntity.ok(
                                 ApiResponse.builder()

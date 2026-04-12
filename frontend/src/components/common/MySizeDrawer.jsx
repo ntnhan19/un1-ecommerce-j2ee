@@ -5,26 +5,30 @@ import SizeRecommendation from '../ai/SizeRecommendation';
 import './MySizeDrawer.css';
 
 const MySizeDrawer = () => {
-    const { isDrawerOpen, toggleDrawer, recommendation } = useSize();
+    const { isDrawerOpen, toggleDrawer, recommendation, currentProduct } = useSize();
 
     if (!isDrawerOpen) return null;
 
     return (
         <div>
-            {/* Backdrop */}
             <div
                 className="size-drawer-overlay"
                 onClick={() => toggleDrawer(false)}
             />
 
-            {/* Drawer Panel */}
             <div className="size-drawer-panel">
                 <div>
-                    {/* Header */}
                     <div className="size-drawer-header">
-                        <h2 className="size-drawer-title">
-                            {recommendation ? 'MySize Assist' : 'Thông tin của bạn'}
-                        </h2>
+                        <div>
+                            <h2 className="size-drawer-title">
+                                {recommendation ? 'Kết quả tư vấn size' : 'MySize Assist'}
+                            </h2>
+                            {currentProduct?.name && (
+                                <p style={{ margin: '0.35rem 0 0', color: '#666', fontSize: '0.9rem' }}>
+                                    {currentProduct.name}
+                                </p>
+                            )}
+                        </div>
                         <button
                             onClick={() => toggleDrawer(false)}
                             className="size-drawer-close"
@@ -36,16 +40,10 @@ const MySizeDrawer = () => {
                         </button>
                     </div>
 
-                    {/* Content Body */}
                     <div className="size-drawer-body">
-                        {!recommendation ? (
-                            <SizeForm />
-                        ) : (
-                            <SizeRecommendation />
-                        )}
+                        {!recommendation ? <SizeForm /> : <SizeRecommendation />}
                     </div>
 
-                    {/* Footer */}
                     {recommendation && (
                         <div className="size-drawer-footer">
                             <button onClick={() => toggleDrawer(false)}>

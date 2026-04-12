@@ -10,7 +10,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -35,9 +34,10 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
 
-        // Giữ lại IllegalArgumentException của nhánh develop
         @ExceptionHandler(IllegalArgumentException.class)
         public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+                ex.printStackTrace();
+
                 ErrorResponse errorResponse = ErrorResponse.builder()
                                 .status(HttpStatus.CONFLICT.value())
                                 .message(ex.getMessage())
